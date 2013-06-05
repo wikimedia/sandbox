@@ -39,7 +39,6 @@ public class Calculator {
 		new Equals();
 		new Minus();
 		new Plus();
-		new Divide();
 		new Square();
 		new Multiply();
 	}
