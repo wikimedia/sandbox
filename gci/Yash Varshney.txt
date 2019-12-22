@@ -3,6 +3,5 @@ Hi Wikimedia Foundation!
 2. I'm creating this text file as a part of the GCI task. 
 P.s. I'm learning about git, gerrit and things related to it. I aim to become git Expert one day. 
 Hope to meet soon.
-
 Thank you
 Yash Varshney
