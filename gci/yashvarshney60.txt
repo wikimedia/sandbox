@@ -1,0 +1,9 @@
+GCI: Google Code-In 2019
+
+Hi Wikimedia! 
+My name is Yash Varshney and I am from India. 
+I'm creating this text file as a part of the GCI task.
+I'm learning about git, gerrit and things related to it. I aim to become git Expert one day. 
+Hope to meet soon.
+
+Thank you
