@@ -1,7 +1,5 @@
-Hi Wikimedia Foundation! 
-1. My name is Yash Varshney and I am from India. I am 17 years old.
-2. I'm creating this text file as a part of the GCI task. 
-P.s. I'm learning about git, gerrit and things related to it. I aim to become git Expert one day. 
-Hope to meet soon.
-Thank you
+Hello Wikimedia Community!
+I am Yash Varshney and this is my fist GCI task. I aim to become git expert one day. I also aim to be a GCI finalist this year.
+
+Thanks a lot
 Yash Varshney
