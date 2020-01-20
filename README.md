@@ -1,5 +1,5 @@
 # Hello world!
-Hey there!
+Welcome!
 
 You can make test changes and experiment with Gerrit in this repository!
 
