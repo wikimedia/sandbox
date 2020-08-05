@@ -3,3 +3,6 @@ host=gerrit.wikimedia.org
 port=29418
 project=sandbox.git
 defaultbranch=master
+defaultremote=origin
+defaultrebase=0
+HEAD=/ref/for/*
