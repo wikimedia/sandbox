@@ -1,6 +1,6 @@
-# Hello world! 
+# Hellss world! 
 Welcome!
- Folder A
+ Folder A && B Merge
 You can make test changes and experiment with Wikimedia Gerrit in this repository!
 Don't worry about messing this repository up; it is meant for testing.
 Demo Gerrit Eyalg Guy && Omer As well
