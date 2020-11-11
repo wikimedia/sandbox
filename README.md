@@ -1,6 +1,5 @@
 # Hello world!
-Don't worry about messing this repository up; it is meant for testing (except for this documentation page).
-=======
+========
 Welcome!
 
 Here you can make test changes and experiment with Wikimedia Gerrit, using this repository!
