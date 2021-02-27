@@ -8,6 +8,6 @@ Don't worry about messing this repository up; it is meant for testing (except fo
 # Helful links
 - Overview regarding Gerrit and MediaWiki: [Gerrit](https://www.mediawiki.org/wiki/Gerrit)
 - MediaWiki tutorial on using Gerrit: [Gerrit/Tutorial](https://www.mediawiki.org/wiki/Gerrit/Tutorial)
-- Shoer version: [Gerrit/Tutorial/tl;dr](https://www.mediawiki.org/wiki/Gerrit/Tutorial/tl;dr)
+- Short version: [Gerrit/Tutorial/tl;dr](https://www.mediawiki.org/wiki/Gerrit/Tutorial/tl;dr)
 
 #Minor Change
