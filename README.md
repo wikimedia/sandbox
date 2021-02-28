@@ -5,7 +5,7 @@ Welcome!
 
 Here you can make test changes and experiment with Wikimedia Gerrit, using this repository!
 
-Don't worry about messing this repository up; it is meant for testing. Test
+Don't worry about messing this repository up; it is meant for testing.
 
 # Helpful links
 - Overview regarding Gerrit and MediaWiki: [Gerrit](https://www.mediawiki.org/wiki/Gerrit)
