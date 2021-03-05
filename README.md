@@ -1,4 +1,4 @@
-# Hello world from slozenkov for test reason!
+# Hello world!
 Welcome!
 
 Here you can make test changes and experiment with Wikimedia Gerrit, using this repository!
