@@ -1,8 +1,0 @@
-GCI: Google Code-In 2019
-
-Hi! I'm creating this text file as a part of my GCI task.
-I'm learning about git, gerrit and things related to it.
-Hope to meet soon.
-
-Thank you,
-ComputerGuy

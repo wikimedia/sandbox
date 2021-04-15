@@ -1,6 +1,0 @@
-hi, test
-
-bye
-
-lorem ipsum
-hi again
