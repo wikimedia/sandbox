@@ -1,1 +1,2 @@
-
+i am not enjoing using vim for rebasing
+its not the 80s people use guis please
