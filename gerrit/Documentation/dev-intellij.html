@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Gerrit Code Review - IntelliJ IDEA Setup</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Gerrit Code Review - IntelliJ IDEA Setup</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_prerequisites">Prerequisites</a>
+<ul class="sectlevel2">
+<li><a href="#_bazel">Bazel</a></li>
+<li><a href="#_intellij_version_and_bazel_plugin">IntelliJ version and Bazel plugin</a></li>
+<li><a href="#_installation_of_intellij_idea">Installation of IntelliJ IDEA</a></li>
+</ul>
+</li>
+<li><a href="#_installation_of_the_bazel_plugin">Installation of the Bazel plugin</a></li>
+<li><a href="#_creation_of_the_project">Creation of the project</a></li>
+<li><a href="#_recommended_settings">Recommended settings</a>
+<ul class="sectlevel2">
+<li><a href="#_code_style">Code style</a></li>
+<li><a href="#_copyright">Copyright</a></li>
+<li><a href="#_git_integration">Git integration</a></li>
+</ul>
+</li>
+<li><a href="#_run_configurations">Run configurations</a>
+<ul class="sectlevel2">
+<li><a href="#runconfigurations-daemon">Gerrit Daemon</a></li>
+<li><a href="#unit-tests">Unit tests</a></li>
+<li><a href="#remote-debug">Debugging a remote Gerrit server</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_prerequisites">Prerequisites</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_bazel">Bazel</h3>
+<div class="paragraph">
+<p>Bazel must be installed as described by
+<a href="dev-bazel.html#installation">Building with Bazel - Installation</a>.</p>
+</div>
+<div class="paragraph">
+<p>It&#8217;s strongly recommended to verify you can build your Gerrit tree with Bazel
+for Java 11 from the command line first. Ensure that at least
+<code>bazel build gerrit</code> runs successfully before you proceed.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_intellij_version_and_bazel_plugin">IntelliJ version and Bazel plugin</h3>
+<div class="paragraph">
+<p>Before downloading IntelliJ, look at the
+<a href="https://plugins.jetbrains.com/plugin/8609-bazel/versions" class="external" target="_blank" rel="noopener">JetBrains plugin repository page of the Bazel plugin</a>
+to see what version of the IntelliJ IDEA it is actually compatible with.</p>
+</div>
+<div class="paragraph">
+<p>Also note that the version of the Bazel plugin used in turn may or may not be
+compatible with the Bazel version used.</p>
+</div>
+<div class="paragraph">
+<p>In addition, Java 11 must be specified on your path or via <code>JAVA_HOME</code> so that
+building with Bazel via the Bazel plugin is possible.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+If the synchronization of the project with the BUILD files using the Bazel
+plugin fails and IntelliJ reports the error <strong>Could not get Bazel roots</strong>, this
+indicates that the Bazel plugin couldn&#8217;t find Java 11.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_installation_of_intellij_idea">Installation of IntelliJ IDEA</h3>
+<div class="paragraph">
+<p>Please refer to the
+<a href="https://www.jetbrains.com/help/idea/installation-guide.html" class="external" target="_blank" rel="noopener">installation guide provided by Jetbrains</a>
+to install it on your platform. Make sure to install a version compatible with
+the Bazel plugin as mentioned above.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_installation_of_the_bazel_plugin">Installation of the Bazel plugin</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The plugin is usually installed using the Jetbrains plugin repository as shown
+in the steps below, but it&#8217;s also possible to
+<a href="https://github.com/bazelbuild/intellij">build it from source</a>.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Go to <strong>File &#8594; Settings &#8594; Plugins</strong>.</p>
+<div class="paragraph">
+<p>(Or, from the welcome screen, <strong>Configure &#8594; Plugins</strong>)</p>
+</div>
+</li>
+<li>
+<p>Activate the <strong>Marketplace</strong> tab.</p>
+</li>
+<li>
+<p>Search for the plugin <code>Bazel</code> (by Google).</p>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+In case the Bazel plugin is not listed, or if it shows an outdated version,
+verify the compatibility between the Bazel plugin and IntelliJ IDEA on <a href="https://plugins.jetbrains.com/plugin/8609-bazel/versions" class="external" target="_blank" rel="noopener">the JetBrains plugin page</a>.
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>Install it.</p>
+</li>
+<li>
+<p>Restart IntelliJ IDEA.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If your project&#8217;s Bazel build fails with <strong>Cannot run program "bazel": No such
+file or directory</strong>, then you may have to set the binary location in the Bazel
+plugin settings:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Go to <strong>Preferences &#8594; Other Settings &#8594; Bazel Settings</strong>.</p>
+</li>
+<li>
+<p>Set the <strong>Bazel binary location</strong>.</p>
+</li>
+</ol>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_creation_of_the_project">Creation of the project</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Go to <strong>File &#8594; Import Bazel Project</strong>.</p>
+<div class="paragraph">
+<p>(Or, from the welcome screen, <strong>Import Bazel Project</strong> should already be shown in
+there.)</p>
+</div>
+</li>
+<li>
+<p>For <strong>Use existing bazel workspace &#8594; Workspace</strong>, select the directory
+containing the Gerrit source code.</p>
+</li>
+<li>
+<p>Choose <strong>Import from workspace</strong> and select the <code>.bazelproject</code> file which is
+located in the top directory of the Gerrit source code.</p>
+</li>
+<li>
+<p>Adjust the path of the project data directory and the name of the project if
+desired.</p>
+</li>
+<li>
+<p>Finish the creation of the project.</p>
+</li>
+<li>
+<p>Verify that you can now build the project. Hit the button with the Bazel icon
+(located on the top-right by default) to synchronize the project. Note that
+warnings may be present in the build.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>At this point all the basic functionality should be working such as Java class
+inspection and running <a href="#unit-tests">unit tests</a>.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+The project data directory can be separate from the source code. One
+advantage of this is that project files don&#8217;t need to be excluded from version
+control.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_recommended_settings">Recommended settings</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_code_style">Code style</h3>
+<div class="sect3">
+<h4 id="_google_java_format_plugin">google-java-format plugin</h4>
+<div class="paragraph">
+<p>Install the <code>google-java-format</code> plugin by following these steps:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Go to <strong>File &#8594; Settings &#8594; Plugins</strong>.</p>
+</li>
+<li>
+<p>Activate the <strong>Marketplace</strong> tab.</p>
+</li>
+<li>
+<p>Search for the plugin <code>google-java-format</code> by Google.</p>
+</li>
+<li>
+<p>Install it.</p>
+</li>
+<li>
+<p>Restart IntelliJ IDEA.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Every time you start IntelliJ IDEA, make sure to use <strong>Code &#8594; Reformat with
+google-java-format</strong> on an arbitrary line of code. This replaces the default
+CodeStyleManager with a custom one. Thus, uses of <strong>Reformat Code</strong> either via
+<strong>Code &#8594; Reformat Code</strong>, keyboard shortcuts, or the commit dialog will use the
+custom style defined by the <code>google-java-format</code> plugin.</p>
+</div>
+<div class="paragraph">
+<p>Please refer to the documentation on the <a href="dev-crafting-changes.html#style">code style</a>
+for which version of <code>google-java-format</code> is used with Gerrit.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_code_style_settings">Code style settings</h4>
+<div class="paragraph">
+<p>The <code>google-java-format</code> plugin is the preferred way to format the code. As it
+only kicks in on demand, it&#8217;s also recommended to have code style settings
+which help to create properly formatted code as-you-go. Those settings can&#8217;t
+completely mimic the format enforced by the <code>google-java-format</code> plugin but try
+to be as close as possible. So before submitting code, please make sure to run
+<strong>Reformat Code</strong>.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Download
+<a href="https://raw.githubusercontent.com/google/styleguide/gh-pages/intellij-java-google-style.xml" class="external" target="_blank" rel="noopener">
+intellij-java-google-style.xml</a>.</p>
+</li>
+<li>
+<p>Go to <strong>File &#8594; Settings &#8594; Editor &#8594; Code Style</strong>.</p>
+</li>
+<li>
+<p>Click on the wrench icon with the tooltip <em>Show Scheme Actions</em>.</p>
+</li>
+<li>
+<p>Click on <strong>Import Scheme</strong>.</p>
+</li>
+<li>
+<p>Select the previously downloaded file <code>intellij-java-google-style.xml</code>.</p>
+</li>
+<li>
+<p>Make sure that <code>GoogleStyle</code> is chosen as the current <strong>Scheme</strong>.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>In addition, the EditorConfig settings (which ensure a consistent style between
+Eclipse, IntelliJ, and other editors) should be applied on top of that. Those
+settings are in the file <code>.editorconfig</code> of the Gerrit source code. IntelliJ
+will automatically pick up those settings if the EditorConfig plugin is enabled
+and configured correctly as can be verified by:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Go to <strong>File &#8594; Settings &#8594; Plugins</strong>.</p>
+</li>
+<li>
+<p>Ensure that the <strong>EditorConfig</strong> plugin (by JetBrains) is enabled.</p>
+</li>
+<li>
+<p>Go to <strong>File &#8594; Settings &#8594; Editor &#8594; Code Style</strong>.</p>
+</li>
+<li>
+<p>Ensure that <strong>Enable EditorConfig support</strong> is checked.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If IntelliJ notifies you later on that the EditorConfig settings override
+the code style settings, simply confirm that.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_copyright">Copyright</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Copy the folder <code>$(gerrit_source_code)/tools/intellij/copyright</code> (not just the
+contents) to <code>$(project_data_directory)/.idea</code>. If it already exists, replace
+it. If you didn&#8217;t select a custom data directory the command could look like
+this, as run from the Gerrit source tree checkout as working directory:</p>
+<div class="listingblock">
+<div class="content">
+<pre>cp -r tools/intellij/copyright .ijwb/.idea/</pre>
+</div>
+</div>
+</li>
+<li>
+<p>Go to <strong>File &#8594; Settings &#8594; Editor &#8594; Copyright &#8594; Copyright Profiles</strong>.</p>
+</li>
+<li>
+<p>Verify that the <strong>Gerrit Copyright</strong> is now present there.</p>
+<div class="paragraph">
+<p>Only in case it hasn&#8217;t picked up the copyright profile automatically, import
+the <code>Gerrit_Copyright.xml</code> from that folder manually.</p>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_git_integration">Git integration</h3>
+<div class="paragraph">
+<p>This section is only relevant in case you want to use the Git integration
+plugin in IntelliJ IDEA.</p>
+</div>
+<div class="paragraph">
+<p>To simplify the creation of commit messages which are compliant with the
+<a href="dev-crafting-changes.html#commit-message">Commit Message</a> format, do the following:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Go to <strong>File &#8594; Settings &#8594; Version Control &#8594; Commit Dialog</strong>.</p>
+</li>
+<li>
+<p>In the <strong>Commit message inspections</strong>, activate the three inspections:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Blank line between subject and body</strong>,</p>
+</li>
+<li>
+<p><strong>Limit body line</strong> and</p>
+</li>
+<li>
+<p><strong>Limit subject line</strong>.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>For the limit line inspections, make sure that 72 is specified as value.</p>
+</li>
+<li>
+<p>For <strong>Limit body line</strong>, tick <strong>Show right margin</strong> and <strong>Wrap when typing reaches
+right margin</strong>.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>In addition, you should follow the instructions of
+<a href="dev-crafting-changes.html#git-commit-settings">this section</a> (if you haven&#8217;t
+done so already):</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Install the Git commit message hook for the <code>Change-Id</code> line.</p>
+</li>
+<li>
+<p>Set up the HTTP access.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Setting up the HTTP access will allow you to commit changes via IntelliJ without
+specifying your credentials. The Git hook won&#8217;t be noticeable during a commit
+as it&#8217;s executed after the commit dialog of IntelliJ was closed.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_run_configurations">Run configurations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Run configurations can be accessed on the toolbar. To edit them or add new ones,
+choose <strong>Edit Configurations</strong> on the drop-down list of the run configurations
+or go to <strong>Run &#8594; Edit Configurations</strong>.</p>
+</div>
+<div class="sect2">
+<h3 id="runconfigurations-daemon">Gerrit Daemon</h3>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>At the moment running this (local) configuration results in a
+<code>java.io.FileNotFoundException</code>. To debug a local Gerrit server with IntelliJ,
+use the instructions of <a href="dev-readme.html#run_daemon">Running the Daemon</a> in
+combination with <a href="#remote-debug">Debugging a remote Gerrit server</a>.</p>
+</div>
+<div class="paragraph">
+<p>(<a href="https://bugs.chromium.org/p/gerrit/issues/detail?id=11360" class="external" target="_blank" rel="noopener">Issue 11360</a>)</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Copy <code>$(gerrit_source_code)/tools/intellij/gerrit_daemon.xml</code> to
+<code>$(project_data_directory)/.idea/runConfigurations/</code>.</p>
+</div>
+<div class="paragraph">
+<p>This run configuration starts the Gerrit daemon similarly as
+<a href="dev-readme.html#run_daemon">Running the Daemon</a>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The <a href="dev-readme.html#init">Site Initialization</a> has to be completed
+before this run configuration works properly.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="unit-tests">Unit tests</h3>
+<div class="paragraph">
+<p>To create run configurations for unit tests, run or debug them via a right-click
+on a method, class, file, or package. The created run configuration is a
+temporary one and can be saved to make it permanent by selecting <strong>Create
+'Bazel test [&#8230;&#8203;]'&#8230;&#8203;</strong> from the context menu.</p>
+</div>
+<div class="paragraph">
+<p>Normally, this approach generates JUnit run configurations. When the Bazel
+plugin manages a project, it intercepts the creation and creates a Bazel test
+run configuration instead, which can be used just like the standard ones.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="remote-debug">Debugging a remote Gerrit server</h3>
+<div class="paragraph">
+<p>If a remote Gerrit server is running and has opened a debug port, you can attach
+IntelliJ via a <code>Remote debug configuration</code>.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Go to <strong>Run &#8594; Edit Configurations</strong>.</p>
+</li>
+<li>
+<p>Click on the <strong>+</strong> to add a new configuration.</p>
+</li>
+<li>
+<p>Choose <strong>Remote</strong> from the <strong>Templates</strong>.</p>
+</li>
+<li>
+<p>Adjust <strong>Configuration &#8594; Settings &#8594; Host</strong> and <strong>Port</strong>.</p>
+</li>
+<li>
+<p>Start this configuration in <code>Debug</code> mode.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+This run configuration dialog also shows the line for the JVM as startup
+flag that you can copy to include in your
+<code>$(gerrit_test_site)/etc/gerrit.config</code> in the <code>[container]</code> section in order
+to work-around the <a href="#runconfigurations-daemon">local run configuration issue</a>.
+</td>
+</tr>
+</table>
+</div>
+<hr style="
+  height: 2px;
+  color: silver;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+">
+<div class="paragraph">
+<p>Part of <a href="index.html">Gerrit Code Review</a></p>
+</div>
+<div style="
+  position:fixed;
+  top:0px;
+  right:0px;
+  text-align:
+  right;
+  padding-top:2px;
+  padding-right:0.5em;
+  padding-bottom:2px;">
+<input size="40"
+  style="line-height: 0.75em;font-size: 0.75em;"
+  id="docSearch"
+  type="text">
+<button style="
+  background:none!important;
+  border:none;
+  padding:0!important;
+  vertical-align:bottom;
+  font-family:'Open Sans','DejaVu Sans',sans-serif;
+  font-size:0.8em;
+  color:#1d4b8f;
+  text-decoration:none;"
+  type="button"
+  id="searchBox">
+  Search
+</button>
+
+<script type="text/javascript">
+var f = function() {
+  window.location = '../#/Documentation/q/' +
+    encodeURIComponent(document.getElementById("docSearch").value);
+}
+document.getElementById("searchBox").onclick = f;
+document.getElementById("docSearch").onkeypress = function(e) {
+  if (13 == (e.keyCode ? e.keyCode : e.which)) {
+    f();
+  }
+}
+</script>
+
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

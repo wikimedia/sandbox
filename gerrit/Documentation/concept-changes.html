@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Changes</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Changes</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#change-properties">Change properties</a></li>
+<li><a href="#change-message">Change Message</a></li>
+<li><a href="#related-changes">Related Changes</a></li>
+<li><a href="#topic">Topics</a></li>
+<li><a href="#submit-strategies">Submit strategies</a></li>
+<li><a href="#change-id">Change-Id</a></li>
+<li><a href="#_the_link_footer">The Link footer</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>A change represents a single commit under review. Each change is identified
+by a <a href="#change-id">Change-Id</a>.</p>
+</div>
+<div class="paragraph">
+<p>Multiple git commits can share the same Change-Id, allowing you to update a
+change as you receive feedback through the code review process. In Gerrit,
+commits that share the same Change-Id are referred to as <em>patch sets</em>. When a
+change is approved, only the latest version of a commit is submitted to the
+repository.</p>
+</div>
+<div class="paragraph">
+<p>You can view a specific change using Gerrit&#8217;s Review screen. This screen
+provides the following information for each change:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Current and previous patch sets</p>
+</li>
+<li>
+<p><a href="#change-properties">Change properties</a>, such as owner, project, and target branch</p>
+</li>
+<li>
+<p>Comments</p>
+</li>
+<li>
+<p>Votes on <a href="config-labels.html">Review Labels</a></p>
+</li>
+<li>
+<p>The <a href="#change-id">Change-Id</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="change-properties">Change properties</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When you open a change in Gerrit, the Review screen displays a number of
+properties about that change.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. Change Properties</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Updated</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The date on which the change was last updated.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Owner</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The contributor who created the change.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Assignee</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The contributor responsible for the change. Often used when a change has
+mulitple reviewers to identify the individual responsible for final approval.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Reviewers</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A list of one or more contributors responsible for reviewing the change.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CC</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A list of one or more contributors who are kept informed about the change, but
+are not required to review it.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Project</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The name of the Gerrit project.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Branch</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The branch on which the change was made.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Topic</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">An optional topic.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Strategy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The <a href="#submit-strategies">submit strategy</a> for the change.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Code Review</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Displays the Code Review status for the change.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>In addition, Gerrit displays the status of any additional labels, such as
+the Verified label, that have been configured for the server. See
+<a href="config-labels.html">Review Labels</a> for more information.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="change-message">Change Message</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Next to the list of change properties is the change message. This message
+contains user-supplied information regarding what the change does. To modify
+the change message, click the <strong>Edit</strong> link.</p>
+</div>
+<div class="paragraph">
+<p>By default, the change message contains the Change-Id. This ID contains a
+permanent link to a search for that Change-Id in Gerrit.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="related-changes">Related Changes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In some cases, a change may be dependent on another change. These changes are
+listed next to the change message. These related changes are grouped together in
+several categories, including:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Relation Chain. These changes are related by parent-child relationships,
+regardless of <a href="#topic">topic</a>.</p>
+</li>
+<li>
+<p>Merge Conflicts. These are changes in which there is a merge conflict with
+the current change.</p>
+</li>
+<li>
+<p>Submitted Together. These are changes that share the same <a href="#topic">topic</a>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>An arrow indicates the change you are currently viewing.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="topic">Topics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Changes can be grouped by topics. Topics make it easier to find related changes
+by using the topic search operator. Changes with the same topic also appear in
+the <strong>Relation Chain</strong> section of the Review screen.</p>
+</div>
+<div class="paragraph">
+<p>Grouping changes by topics can be helpful when you have several changes that,
+when combined, implement a feature.</p>
+</div>
+<div class="paragraph">
+<p>Assigning a topic to a change can be done in the change screen or through a <code>git
+push</code> command.</p>
+</div>
+<div class="paragraph">
+<p>For more information about using topics, see the user guide:
+<a href="cross-repository-changes.html">Submitting Changes Across Repositories by using Topics</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="submit-strategies">Submit strategies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Each project in Gerrit can employ a specific submit strategy. This strategy is
+listed in the change properties section of the Review screen.</p>
+</div>
+<div class="paragraph">
+<p>The following table lists the supported submit strategies.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 2. Submit Strategies</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Strategy</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fast Forward Only</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No merge commits are produced. All merges must be handled on the client, before
+submitting the change.</p>
+<p class="tableblock">To submit a change, the change must be a strict superset of the destination
+branch.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Merge If Necessary</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The default submit strategy. If the change being submitted is a strict superset
+of the destination branch, then the branch is fast-forwarded to the change. If
+not, a merge commit is automatically created at submit time. This is identical
+to the <code>git merge --ff</code> command.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Always Merge</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Always produce a merge commit, even if the change is a strict superset of the
+destination branch. This is identical to the <code>git merge --no-ff</code> command.
+It is often used when users of the project want to be able to read the history
+of submits by running the <code>git log --first-parent</code> command.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cherry Pick</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Always cherry pick the patch set, ignoring the parent lineage and instead
+creating a new commit on top of the current branch.</p>
+<p class="tableblock">When cherry picking a change, Gerrit automatically appends a short summary of
+the change&#8217;s approvals and a link back to the change. The committer header is
+also set to the submitter, while the author header retains the original patch
+set author.</p>
+<p class="tableblock">NOTE: Gerrit ignores dependencies between changes when using this submit type
+unless <code>change.submitWholeTopic</code> is enabled and depending changes share the same
+topic. This means submitters must remember to submit changes in the right order
+when using this submit type.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Rebase if Necessary</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If the change being submitted is a strict superset of the destination branch,
+the branch is fast-forwarded to the change. If not, the change is automatically
+rebased and the branch is fast-forwarded to the change.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Rebase Always</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Similar to Rebase If Necessary, but creates a new patch set even if fast
+forward is possible. This strategy is also similar to Cherry Pick; however,
+Rebase Always does not ignore dependencies.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Any project owner can use the Project screen to modify the method Gerrit uses
+to submit a change.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="change-id">Change-Id</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit uses a Change-Id to identify which patch sets belong to the same review.
+For example, you make a change to a project. A reviewer supplies some feedback,
+which you address in an amended commit. By assigning the same Change-Id to both
+commits, Gerrit can attach those commits to the same change.</p>
+</div>
+<div class="paragraph">
+<p>Change-Ids are appended to the end of a commit message, and resemble the
+following:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>commit 29a6bb1a059aef021ac39d342499191278518d1d
+Author: A. U. Thor &lt;author@example.com&gt;
+Date: Thu Aug 20 12:46:50 2009 -0700
+
+    Improve foo widget by attaching a bar.
+
+    We want a bar, because it improves the foo by providing more
+    wizbangery to the dowhatimeanery.
+
+    Bug: #42
+    Change-Id: Ic8aaa0728a43936cd4c6e1ed590e01ba8f0fbf5b
+    Signed-off-by: A. U. Thor &lt;author@example.com&gt;
+    CC: R. E. Viewer &lt;reviewer@example.com&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Gerrit requires that the Change-Id is in the footer (last paragraph) of a
+commit message. It can be combined with a Signed-off-by, CC, or other lines. For
+instance, the previous example has a Change-Id, along with a Signed-off-by and
+CC line.</p>
+</div>
+<div class="paragraph">
+<p>Notice that the Change-Id is similar to the commit id. To avoid confusing the
+two, a Change-Id typically begins with an <code>I</code>.</p>
+</div>
+<div class="paragraph">
+<p>While there are several ways you can add a Change-Id, the standard
+method uses git&#8217;s <a href="cmd-hook-commit-msg.html">commit-msg hook</a>
+to automatically add the Change-Id to each new commit.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_link_footer">The Link footer</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit also supports the Link footer as an alternative to the Change-Id
+footer. A Link footer looks like this:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>    Link: https://gerrit-review.googlesource.com/id/Ic8aaa0728a43936cd4c6e1ed590e01ba8f0fbf5b</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The advantage of this style of footer is that it usually acts
+as a link directly to the change&#8217;s review page, provided that
+the change has been uploaded to Gerrit. Projects such as the
+<a href="https://www.kernel.org/doc/html/latest/maintainer/configure-git.html#creating-commit-links-to-lore-kernel-org">Linux kernel</a>
+have a convention of adding links to commit messages using the
+Link footer.</p>
+</div>
+<div class="paragraph">
+<p>If multiple changes have been uploaded to Gerrit with the same
+change ID, for example if a change has been cherry-picked to multiple
+branches, the link will take the user to a list of changes.</p>
+</div>
+<div class="paragraph">
+<p>The base URL in the footer is required to match the server&#8217;s base URL.
+If the URL does not match, the server will not recognize the footer
+as a change ID footer.</p>
+</div>
+<div class="paragraph">
+<p>The <a href="cmd-hook-commit-msg.html">commit-msg hook</a> can be configured
+to insert Link footers instead of Change-Id footers by setting the
+property <code>gerrit.reviewUrl</code> to the base URL of the Gerrit server.</p>
+</div>
+<hr style="
+  height: 2px;
+  color: silver;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+">
+<div class="paragraph">
+<p>Part of <a href="index.html">Gerrit Code Review</a></p>
+</div>
+<div style="
+  position:fixed;
+  top:0px;
+  right:0px;
+  text-align:
+  right;
+  padding-top:2px;
+  padding-right:0.5em;
+  padding-bottom:2px;">
+<input size="40"
+  style="line-height: 0.75em;font-size: 0.75em;"
+  id="docSearch"
+  type="text">
+<button style="
+  background:none!important;
+  border:none;
+  padding:0!important;
+  vertical-align:bottom;
+  font-family:'Open Sans','DejaVu Sans',sans-serif;
+  font-size:0.8em;
+  color:#1d4b8f;
+  text-decoration:none;"
+  type="button"
+  id="searchBox">
+  Search
+</button>
+
+<script type="text/javascript">
+var f = function() {
+  window.location = '../#/Documentation/q/' +
+    encodeURIComponent(document.getElementById("docSearch").value);
+}
+document.getElementById("searchBox").onclick = f;
+document.getElementById("docSearch").onkeypress = function(e) {
+  if (13 == (e.keyCode ? e.keyCode : e.which)) {
+    f();
+  }
+}
+</script>
+
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

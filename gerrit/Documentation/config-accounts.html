@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Gerrit Code Review - Accounts</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Gerrit Code Review - Accounts</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_overview">Overview</a></li>
+<li><a href="#all-users"><code>All-Users</code> repository</a></li>
+<li><a href="#account-index">Account Index</a></li>
+<li><a href="#account-data-in-user-branch">Account Data in User Branch</a>
+<ul class="sectlevel2">
+<li><a href="#account-properties">Account Properties</a></li>
+<li><a href="#preferences">Preferences</a></li>
+<li><a href="#project-watches">Project Watches</a></li>
+<li><a href="#ssh-keys">SSH Keys</a></li>
+</ul>
+</li>
+<li><a href="#external-ids">External IDs</a></li>
+<li><a href="#starred-changes">Starred Changes</a></li>
+<li><a href="#reviewed-flags">Reviewed Flags</a></li>
+<li><a href="#account-sequence">Account Sequence</a></li>
+<li><a href="#replication">Replication</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_overview">Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Starting from 2.15 Gerrit accounts are fully stored in
+<a href="note-db.html">NoteDb</a>.</p>
+</div>
+<div class="paragraph">
+<p>The account data consists of a sequence number (account ID), account
+properties (full name, display name, preferred email, registration
+date, status, inactive flag), preferences (general, diff and edit
+preferences), project watches, SSH keys, external IDs, starred changes
+and reviewed flags.</p>
+</div>
+<div class="paragraph">
+<p>Most account data is stored in a special <a href="#all-users">All-Users</a>
+repository, which has one branch per user. Within the user branch there
+are Git config files for the <a href="#account-properties">
+account properties</a>, the <a href="#preferences">account preferences</a> and the
+<a href="#project-watches">project watches</a>. In addition there is an
+<code>authorized_keys</code> file for the <a href="#ssh-keys">SSH keys</a> that follows
+the standard OpenSSH file format.</p>
+</div>
+<div class="paragraph">
+<p>The account data in the user branch is versioned and the Git history of
+this branch serves as an audit log.</p>
+</div>
+<div class="paragraph">
+<p>The <a href="#external-ids">external IDs</a> are stored as Git Notes inside the
+<code>All-Users</code> repository in the <code>refs/meta/external-ids</code> notes branch.
+Storing all external IDs in a notes branch ensures that each external
+ID is only used once.</p>
+</div>
+<div class="paragraph">
+<p>The <a href="#starred-changes">starred changes</a> are represented as
+independent refs in the <code>All-Users</code> repository. They are not stored in
+the user branch, since this data doesn&#8217;t need versioning.</p>
+</div>
+<div class="paragraph">
+<p>The <a href="#reviewed-flags">reviewed flags</a> are not stored in Git, but are
+persisted in a database table. This is because there is a high volume
+of reviewed flags and storing them in Git would be inefficient.</p>
+</div>
+<div class="paragraph">
+<p>Since accessing the account data in Git is not fast enough for account
+queries, e.g. when suggesting reviewers, Gerrit has a
+<a href="#account-index">secondary index for accounts</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="all-users"><code>All-Users</code> repository</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>All-Users</code> repository is a special repository that only contains
+user-specific information. It contains one branch per user. The user
+branch is formatted as <code>refs/users/CD/ABCD</code>, where <code>CD/ABCD</code> is the
+<a href="access-control.html#sharded-user-id">sharded account ID</a>, e.g. the
+user branch for account <code>1000856</code> is <code>refs/users/56/1000856</code>. The
+account IDs in the user refs are sharded so that there is a good
+distribution of the Git data in the storage system.</p>
+</div>
+<div class="paragraph">
+<p>A user branch must exist for each account, as it represents the
+account. The files in the user branch are all optional. This means
+having a user branch with a tree that is completely empty is also a
+valid account definition.</p>
+</div>
+<div class="paragraph">
+<p>Updates to the user branch are done through the
+<a href="rest-api-accounts.html">Gerrit REST API</a>, but users can also
+manually fetch their user branch and push changes back to Gerrit. On
+push the user data is evaluated and invalid user data is rejected.</p>
+</div>
+<div class="paragraph">
+<p>To hide the implementation detail of the sharded account ID in the ref
+name Gerrit offers a magic <code>refs/users/self</code> ref that is automatically
+resolved to the user branch of the calling user. The user can then use
+this ref to fetch from and push to the own user branch. E.g. if user
+<code>1000856</code> pushes to <code>refs/users/self</code>, the branch
+<code>refs/users/56/1000856</code> is updated. In Gerrit <code>self</code> is an established
+term to refer to the calling user (e.g. in change queries). This is why
+the magic ref for the own user branch is called <code>refs/users/self</code>.</p>
+</div>
+<div class="paragraph">
+<p>A user branch should only be readable and writeable by the user to whom
+the account belongs. To assign permissions on the user branches the
+normal branch permission system is used. In the permission system the
+user branches are specified as <code>refs/users/${shardeduserid}</code>. The
+<code>${shardeduserid}</code> variable is resolved to the sharded account ID. This
+variable is used to assign default access rights on all user branches
+that apply only to the owning user. The following permissions are set
+by default when a Gerrit site is newly installed or upgraded to a
+version which supports user branches:</p>
+</div>
+<div class="listingblock">
+<div class="title">All-Users project.config</div>
+<div class="content">
+<pre>[access "refs/users/${shardeduserid}"]
+  exclusiveGroupPermissions = read push submit
+  read = group Registered Users
+  push = group Registered Users
+  label-Code-Review = -2..+2 group Registered Users
+  submit = group Registered Users</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The user branch contains several files with account data which are
+described <a href="#account-data-in-user-branch">below</a>.</p>
+</div>
+<div class="paragraph">
+<p>In addition to the user branches the <code>All-Users</code> repository also
+contains a branch for the <a href="#external-ids">external IDs</a> and special
+refs for the <a href="#starred-changes">starred changes</a>.</p>
+</div>
+<div class="paragraph">
+<p>Also the next available value of the <a href="#account-sequence">account
+sequence</a> is stored in the <code>All-Users</code> repository.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="account-index">Account Index</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are several situations in which Gerrit needs to query accounts,
+e.g.:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>For sending email notifications to project watchers.</p>
+</li>
+<li>
+<p>For reviewer suggestions.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Accessing the account data in Git is not fast enough for account
+queries, since it requires accessing all user branches and parsing
+all files in each of them. To overcome this Gerrit has a secondary
+index for accounts. The account index is either based on
+<a href="config-gerrit.html#index.type">Lucene or Elasticsearch</a>.</p>
+</div>
+<div class="paragraph">
+<p>Via the <a href="rest-api-accounts.html#query-account">Query Account</a> REST
+endpoint <a href="user-search-accounts.html">generic account queries</a> are
+supported.</p>
+</div>
+<div class="paragraph">
+<p>Accounts are automatically reindexed on any update. The
+<a href="rest-api-accounts.html#index-account">Index Account</a> REST endpoint
+allows to reindex an account manually. In addition the
+<a href="pgm-reindex.html">reindex</a> program can be used to reindex all
+accounts offline.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="account-data-in-user-branch">Account Data in User Branch</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A user branch contains several Git config files with the account data:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>account.config</code>:</p>
+<div class="paragraph">
+<p>Stores the <a href="#account-properties">account properties</a>.</p>
+</div>
+</li>
+<li>
+<p><code>preferences.config</code>:</p>
+<div class="paragraph">
+<p>Stores the <a href="#preferences">user preferences</a> of the account.</p>
+</div>
+</li>
+<li>
+<p><code>watch.config</code>:</p>
+<div class="paragraph">
+<p>Stores the <a href="#project-watches">project watches</a> of the account.</p>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In addition it contains an
+<a href="https://en.wikibooks.org/wiki/OpenSSH/Client_Configuration_Files#.7E.2F.ssh.2Fauthorized_keys" class="external" target="_blank" rel="noopener">
+authorized_keys</a> file with the <a href="#ssh-keys">SSH keys</a> of the account.</p>
+</div>
+<div class="sect2">
+<h3 id="account-properties">Account Properties</h3>
+<div class="paragraph">
+<p>The account properties are stored in the user branch in the
+<code>account.config</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>[account]
+  fullName = John Doe
+  displayName = John
+  preferredEmail = john.doe@example.com
+  status = OOO
+  active = false</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For active accounts the <code>active</code> parameter can be omitted.</p>
+</div>
+<div class="paragraph">
+<p>The registration date is not contained in the <code>account.config</code> file but
+is derived from the timestamp of the first commit on the user branch.</p>
+</div>
+<div class="paragraph">
+<p>When users update their account properties by pushing to the user
+branch, it is verified that the preferred email exists in the external
+IDs.</p>
+</div>
+<div class="paragraph">
+<p>Users are not allowed to flip the active value themselves; only
+administrators and users with the
+<a href="access-control.html#capability_modifyAccount">Modify Account</a>
+global capability are allowed to change it.</p>
+</div>
+<div class="paragraph">
+<p>Since all data in the <code>account.config</code> file is optional the
+<code>account.config</code> file may be absent from some user branches.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="preferences">Preferences</h3>
+<div class="paragraph">
+<p>The account properties are stored in the user branch in the
+<code>preferences.config</code> file. There are separate sections for
+<a href="intro-user.html#preferences">general</a>,
+<a href="user-review-ui.html#diff-preferences">diff</a> and edit preferences:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>[diff]
+  hideTopMenu = true
+[edit]
+  lineLength = 80</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The parameter names match the names that are used in the preferences REST API:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="rest-api-accounts.html#preferences-info">General Preferences</a></p>
+</li>
+<li>
+<p><a href="rest-api-accounts.html#diff-preferences-info">Diff Preferences</a></p>
+</li>
+<li>
+<p><a href="rest-api-accounts.html#edit-preferences-info">Edit Preferences</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If the value for a preference is the same as the default value for this
+preference, it can be omitted in the <code>preferences.config</code> file.</p>
+</div>
+<div class="paragraph">
+<p>Defaults for preferences that apply for all accounts can be configured
+in the <code>refs/users/default</code> branch in the <code>All-Users</code> repository.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="project-watches">Project Watches</h3>
+<div class="paragraph">
+<p>Users can configure watches on projects to receive email notifications
+for changes of that project.</p>
+</div>
+<div class="paragraph">
+<p>A watch configuration consists of the project name and an optional
+filter query. If a filter query is specified, email notifications will
+be sent only for changes of that project that match this query.</p>
+</div>
+<div class="paragraph">
+<p>In addition, each watch configuration can contain a list of
+notification types that determine for which events email notifications
+should be sent. E.g. a user can configure that email notifications
+should only be sent if a new patch set is uploaded and when the change
+gets submitted, but not on other events.</p>
+</div>
+<div class="paragraph">
+<p>Project watches are stored in a <code>watch.config</code> file in the user branch:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>[project "foo"]
+  notify = * [ALL_COMMENTS]
+  notify = branch:master [ALL_COMMENTS, NEW_PATCHSETS]
+  notify = branch:master owner:self [SUBMITTED_CHANGES]</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>watch.config</code> file has one project section for all project watches
+of a project. The project name is used as subsection name and the
+filters with the notification types, that decide for which events email
+notifications should be sent, are represented as <code>notify</code> values in the
+subsection. A <code>notify</code> value is formatted as
+"&lt;filter&gt; [&lt;comma-separated-list-of-notification-types&gt;]". The
+supported notification types are described in the
+<a href="user-notify.html#notify.name.type">Email Notifications documentation</a>.</p>
+</div>
+<div class="paragraph">
+<p>For a change event, a notification will be sent if any <code>notify</code> value
+of the corresponding project has both a filter that matches the change
+and a notification type that matches the event.</p>
+</div>
+<div class="paragraph">
+<p>In order to send email notifications on change events, Gerrit needs to
+find all accounts that watch the corresponding project. To make this
+lookup fast the secondary account index is used. The account index
+contains a repeated field that stores the projects that are being
+watched by an account. After the accounts that watch the project have
+been retrieved from the index, the complete watch configuration is
+available from the account cache and Gerrit can check if any watch
+matches the change and the event.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ssh-keys">SSH Keys</h3>
+<div class="paragraph">
+<p>SSH keys are stored in the user branch in an <code>authorized_keys</code> file,
+which is the
+<a href="https://en.wikibooks.org/wiki/OpenSSH/Client_Configuration_Files#.7E.2F.ssh.2Fauthorized_keys" class="external" target="_blank" rel="noopener">
+standard OpenSSH file format</a> for storing SSH keys:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQCgug5VyMXQGnem2H1KVC4/HcRcD4zzBqSuJBRWVonSSoz3RoAZ7bWXCVVGwchtXwUURD689wFYdiPecOrWOUgeeyRq754YWRhU+W28vf8IZixgjCmiBhaL2gt3wff6pP+NXJpTSA4aeWE5DfNK5tZlxlSxqkKOS8JRSUeNQov5Tw== john.doe@example.com
+# DELETED
+# INVALID ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDm5yP7FmEoqzQRDyskX+9+N0q9GrvZeh5RG52EUpE4ms/Ujm3ewV1LoGzc/lYKJAIbdcZQNJ9+06EfWZaIRA3oOwAPe1eCnX+aLr8E6Tw2gDMQOGc5e9HfyXpC2pDvzauoZNYqLALOG3y/1xjo7IH8GYRS2B7zO/Mf9DdCcCKSfw== john.doe@example.com
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQCaS7RHEcZ/zjl9hkWkqnm29RNr2OQ/TZ5jk2qBVMH3BgzPsTsEs+7ag9tfD8OCj+vOcwm626mQBZoR2e3niHa/9gnHBHFtOrGfzKbpRjTWtiOZbB9HF+rqMVD+Dawo/oicX/dDg7VAgOFSPothe6RMhbgWf84UcK5aQd5eP5y+tQ== john.doe@example.com</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When the SSH API is used, Gerrit needs an efficient way to lookup SSH
+keys by username. Since the username can be easily resolved to an
+account ID (via the account cache), accessing the SSH keys in the user
+branch is fast.</p>
+</div>
+<div class="paragraph">
+<p>To identify SSH keys in the REST API Gerrit uses
+<a href="rest-api-accounts.html#ssh-key-id">sequence numbers per account</a>.
+This is why the order of the keys in the <code>authorized_keys</code> file is
+used to determine the sequence numbers of the keys (the sequence
+numbers start at 1).</p>
+</div>
+<div class="paragraph">
+<p>To keep the sequence numbers intact when a key is deleted, a
+'# DELETED' line is inserted at the position where the key was deleted.</p>
+</div>
+<div class="paragraph">
+<p>Invalid keys are marked with the prefix '# INVALID'.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="external-ids">External IDs</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>External IDs are used to link identities, such as the username and email
+addresses, and external identies such as an LDAP account or an OAUTH
+identity, to an account in Gerrit.</p>
+</div>
+<div class="paragraph">
+<p>External IDs are stored as Git Notes in the <code>All-Users</code> repository. The
+name of the notes branch is <code>refs/meta/external-ids</code>.</p>
+</div>
+<div class="paragraph">
+<p>As note key the SHA-1 of the external ID key is used, for example the key
+for the external ID <code>username:jdoe</code> is <code>e0b751ae90ef039f320e097d7d212f490e933706</code>.
+This ensures that an external ID is used only once (e.g. an external ID can
+never be assigned to multiple accounts at a point in time).</p>
+</div>
+<div class="paragraph">
+<p>The following commands show how to find the SHA-1 of an external ID:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>$ echo -n 'gerrit:jdoe' | shasum
+7c2a55657d911109dbc930836e7a770fb946e8ef  -
+
+$ echo -n 'username:jdoe' | shasum
+e0b751ae90ef039f320e097d7d212f490e933706  -</pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+If the external ID key is changed manually you must adapt the note key
+to the new SHA-1, otherwise the external ID becomes inconsistent and is
+ignored by Gerrit.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The note content is a Git config file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>[externalId "username:jdoe"]
+  accountId = 1003407
+  email = jdoe@example.com
+  password = bcrypt:4:LCbmSBDivK/hhGVQMfkDpA==:XcWn0pKYSVU/UJgOvhidkEtmqCp6oKB7</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once SHA-1 of an external ID is known the following command can be used to
+show the content of the note:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>$ echo -n 'gerrit:jdoe' | shasum
+7c2a55657d911109dbc930836e7a770fb946e8ef  -
+
+$ git show refs/meta/external-ids:7c/2a55657d911109dbc930836e7a770fb946e8ef
+[externalId "username:jdoe"]
+  accountId = 1003407
+  email = jdoe@example.com
+  password = bcrypt:4:LCbmSBDivK/hhGVQMfkDpA==:XcWn0pKYSVU/UJgOvhidkEtmqCp6oKB7</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The config file has one <code>externalId</code> section. The external ID key, which
+consists of scheme and ID in the format '&lt;scheme&gt;:&lt;id&gt;', is used as
+subsection name.</p>
+</div>
+<div class="paragraph">
+<p>The <code>accountId</code> field is mandatory. The <code>email</code> and <code>password</code> fields
+are optional.</p>
+</div>
+<div class="paragraph">
+<p>Note that git will automatically nest these notes at varying levels. If
+refs/meta/external-ids:7c/2a55657d911109dbc930836e7a770fb946e8ef is not
+found then check
+refs/meta/external-ids:7c/2a/55657d911109dbc930836e7a770fb946e8ef and
+so on.</p>
+</div>
+<div class="paragraph">
+<p>The external IDs are maintained by Gerrit. This means users are not
+allowed to manually edit their external IDs. Only users with the
+<a href="access-control.html#capability_accessDatabase">Access Database</a>
+global capability can push updates to the <code>refs/meta/external-ids</code>
+branch. However Gerrit rejects pushes if:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>any external ID config file cannot be parsed</p>
+</li>
+<li>
+<p>if a note key does not match the SHA of the external ID key in the
+note content</p>
+</li>
+<li>
+<p>external IDs for non-existing accounts are contained</p>
+</li>
+<li>
+<p>invalid emails are contained</p>
+</li>
+<li>
+<p>any email is not unique (the same email is assigned to multiple
+accounts)</p>
+</li>
+<li>
+<p>hashed passwords of external IDs with scheme <code>username</code> cannot be
+decoded</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Users can edit some external IDs via the user settings page or the
+REST API. Note that email addresses cannot be deleted if they are
+associated with the user&#8217;s login credentials external ID, for
+example the email address associated with an OpenId or OAUTH external
+ID. If users wish to remove these email addresses from Gerrit they must
+first update the external authentication record in that system,
+log in to Gerrit, then Gerrit will update the external ID record with
+the new email address.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="starred-changes">Starred Changes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="dev-stars.html">Starred changes</a> allow users to mark changes as
+favorites and receive email notifications for them.</p>
+</div>
+<div class="paragraph">
+<p>Each starred change is a tuple of an account ID, a change ID and a
+label.</p>
+</div>
+<div class="paragraph">
+<p>To keep track of a change that is starred by an account, Gerrit creates
+a <code>refs/starred-changes/YY/XXXX/ZZZZZZZ</code> ref in the <code>All-Users</code>
+repository, where <code>YY/XXXX</code> is the sharded numeric change ID and
+<code>ZZZZZZZ</code> is the account ID.</p>
+</div>
+<div class="paragraph">
+<p>A starred-changes ref points to a blob that contains the list of labels
+that the account set on the change. The label list is stored as UTF-8
+text with one label per line.</p>
+</div>
+<div class="paragraph">
+<p>Since JGit has explicit optimizations for looking up refs by prefix
+when the prefix ends with '/', this ref format is optimized to find
+starred changes by change ID. Finding starred changes by change ID is
+e.g. needed when a change is updated so that all users that have
+the <a href="dev-stars.html#default-star">default star</a> on the change can be
+notified by email.</p>
+</div>
+<div class="paragraph">
+<p>Gerrit also needs an efficient way to find all changes that were
+starred by an account, e.g. to provide results for the
+<a href="user-search.html#is-starred">is:starred</a> query operator. With the
+ref format as described above the lookup of starred changes by account
+ID is expensive, as this requires a scan of the full
+<code>refs/starred-changes/*</code> namespace. To overcome this the users that
+have starred a change are stored in the change index together with the
+star labels.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="reviewed-flags">Reviewed Flags</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When reviewing a patch set in the Gerrit UI, the reviewer can mark
+files in the patch set as reviewed. These markers are called ‘Reviewed
+Flags’ and are private to the user. A reviewed flag is a tuple of patch
+set ID, file and account ID.</p>
+</div>
+<div class="paragraph">
+<p>Each user can have many thousands of reviewed flags and over time the
+number can grow without bounds.</p>
+</div>
+<div class="paragraph">
+<p>The high amount of reviewed flags makes a storage in Git unsuitable
+because each update requires opening the repository and committing a
+change, which is a high overhead for flipping a bit. Therefore the
+reviewed flags are stored in a database table. By default they are
+stored in a local H2 database, but there is an extension point that
+allows to plug in alternate implementations for storing the reviewed
+flags. To replace the storage for reviewed flags a plugin needs to
+implement the <a href="dev-plugins.html#account-patch-review-store">
+AccountPatchReviewStore</a> interface. E.g. to support a cluster setup with
+multiple primary servers handling write operations where reviewed flags should
+be replicated between the primary nodes one could implement a store for the
+reviewed flags that is based on MySQL with replication.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="account-sequence">Account Sequence</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The next available account sequence number is stored as UTF-8 text in a
+blob pointed to by the <code>refs/sequences/accounts</code> ref in the <code>All-Users</code>
+repository.</p>
+</div>
+<div class="paragraph">
+<p>Multiple processes share the same sequence by incrementing the counter
+using normal git ref updates. To amortize the cost of these ref
+updates, processes increment the counter by a larger number and hand
+out numbers from that range in memory until they run out. The size of
+the account ID batch that each process retrieves at once is controlled
+by the <a href="config-gerrit.html#notedb.accounts.sequenceBatchSize">
+notedb.accounts.sequenceBatchSize</a> parameter in the <code>gerrit.config</code>
+file.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="replication">Replication</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To replicate account data the following branches from the <code>All-Users</code>
+repository must be replicated:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>refs/users/*</code> (user branches)</p>
+</li>
+<li>
+<p><code>refs/meta/external-ids</code> (external IDs)</p>
+</li>
+<li>
+<p><code>refs/starred-changes/*</code> (star labels)</p>
+</li>
+<li>
+<p><code>refs/sequences/accounts</code> (account sequence numbers, not needed for Gerrit
+replicas)</p>
+</li>
+</ul>
+</div>
+<hr style="
+  height: 2px;
+  color: silver;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+">
+<div class="paragraph">
+<p>Part of <a href="index.html">Gerrit Code Review</a></p>
+</div>
+<div style="
+  position:fixed;
+  top:0px;
+  right:0px;
+  text-align:
+  right;
+  padding-top:2px;
+  padding-right:0.5em;
+  padding-bottom:2px;">
+<input size="40"
+  style="line-height: 0.75em;font-size: 0.75em;"
+  id="docSearch"
+  type="text">
+<button style="
+  background:none!important;
+  border:none;
+  padding:0!important;
+  vertical-align:bottom;
+  font-family:'Open Sans','DejaVu Sans',sans-serif;
+  font-size:0.8em;
+  color:#1d4b8f;
+  text-decoration:none;"
+  type="button"
+  id="searchBox">
+  Search
+</button>
+
+<script type="text/javascript">
+var f = function() {
+  window.location = '../#/Documentation/q/' +
+    encodeURIComponent(document.getElementById("docSearch").value);
+}
+document.getElementById("searchBox").onclick = f;
+document.getElementById("docSearch").onkeypress = function(e) {
+  if (13 == (e.keyCode ? e.keyCode : e.which)) {
+    f();
+  }
+}
+</script>
+
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Plugins</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Plugins</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#installation">Plugin Installation</a></li>
+<li><a href="#development">Plugin Development</a></li>
+<li><a href="#core-plugins">Core Plugins</a>
+<ul class="sectlevel2">
+<li><a href="#codemirror-editor">codemirror-editor</a></li>
+<li><a href="#commit-message-length-validator">commit-message-length-validator</a></li>
+<li><a href="#delete-project">delete-project</a></li>
+<li><a href="#download-commands">download-commands</a></li>
+<li><a href="#gitiles">gitiles</a></li>
+<li><a href="#hooks">hooks</a></li>
+<li><a href="#plugin-manager">plugin-manager</a></li>
+<li><a href="#replication">replication</a></li>
+<li><a href="#reviewnotes">reviewnotes</a></li>
+<li><a href="#singleusergroup">singleusergroup</a></li>
+<li><a href="#webhooks">webhooks</a></li>
+</ul>
+</li>
+<li><a href="#other-plugins">Other Plugins</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Gerrit server functionality can be extended by installing plugins.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="installation">Plugin Installation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Plugin installation is as easy as dropping the plugin jar into the
+<code>$site_path/plugins/</code> folder. It may take
+<a href="config-gerrit.html#plugins.checkFrequency">a few minutes</a> until
+the server picks up new and updated plugins.</p>
+</div>
+<div class="paragraph">
+<p>Due to caching, you might need to flush your browser cache after
+installing a plugin. Users will usually see the result within
+several minutes.</p>
+</div>
+<div class="paragraph">
+<p>Plugins can also be installed via
+<a href="rest-api-plugins.html#install-plugin">REST</a> and
+<a href="cmd-plugin-install.html">SSH</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="development">Plugin Development</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>How to develop plugins is described in the <a href="dev-plugins.html">
+Plugin Development Guide</a>.</p>
+</div>
+<div class="paragraph">
+<p>If you want to share your plugin under the <a href="licenses.html#Apache2_0">
+Apache License 2.0</a> you can host your plugin development on the
+<a href="https://gerrit-review.googlesource.com" class="external" target="_blank" rel="noopener">gerrit-review</a> Gerrit
+Server. You can request the creation of a new Project by email
+to the <a href="https://groups.google.com/forum/#!forum/repo-discuss" class="external" target="_blank" rel="noopener">Gerrit
+mailing list</a>. You would be assigned as project owner of the new plugin
+project so that you can submit changes on your own. It is the
+responsibility of the project owner to maintain the plugin, e.g. to
+make sure that it works with new Gerrit versions and to create stable
+branches for old releases.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="core-plugins">Core Plugins</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="dev-core-plugins.html">Core plugins</a> are packaged within the Gerrit
+war file and can easily be installed during the <a href="pgm-init.html">
+Gerrit initialization</a>.</p>
+</div>
+<div class="paragraph">
+<p>Note that the documentation and configuration links in the list below are
+to the plugins' master branch. Please refer to the appropriate branch or
+revision for the Gerrit version you are using.</p>
+</div>
+<div class="sect2">
+<h3 id="codemirror-editor">codemirror-editor</h3>
+<div class="paragraph">
+<p>CodeMirror JavaScript plugin for Gerrit.</p>
+</div>
+<div class="paragraph">
+<p><a href="https://gerrit-review.googlesource.com/admin/repos/plugins/codemirror-editor" class="external" target="_blank" rel="noopener">
+Project</a> |</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="commit-message-length-validator">commit-message-length-validator</h3>
+<div class="paragraph">
+<p>This plugin checks the length of a commit’s commit message subject and
+message body, and reports warnings or errors to the git client if the
+lengths are exceeded.</p>
+</div>
+<div class="paragraph">
+<p><a href="https://gerrit-review.googlesource.com/admin/repos/plugins/commit-message-length-validator" class="external" target="_blank" rel="noopener">
+Project</a> |
+<a href="https://gerrit.googlesource.com/plugins/commit-message-length-validator/+doc/master/src/main/resources/Documentation/about.md" class="external" target="_blank" rel="noopener">
+Documentation</a> |
+<a href="https://gerrit.googlesource.com/plugins/commit-message-length-validator/+doc/master/src/main/resources/Documentation/config.md" class="external" target="_blank" rel="noopener">
+Configuration</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="delete-project">delete-project</h3>
+<div class="paragraph">
+<p>Provides the ability to delete a project.</p>
+</div>
+<div class="paragraph">
+<p><a href="https://gerrit-review.googlesource.com/admin/repos/plugins/delete-project" class="external" target="_blank" rel="noopener">
+Project</a> |
+<a href="https://gerrit.googlesource.com/plugins/delete-project/+doc/master/src/main/resources/Documentation/about.md" class="external" target="_blank" rel="noopener">
+Documentation</a> |
+<a href="https://gerrit.googlesource.com/plugins/delete-project/+doc/master/src/main/resources/Documentation/config.md" class="external" target="_blank" rel="noopener">
+Configuration</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="download-commands">download-commands</h3>
+<div class="paragraph">
+<p>This plugin defines commands for downloading changes in different
+download schemes (for downloading via different network protocols).</p>
+</div>
+<div class="paragraph">
+<p><a href="https://gerrit-review.googlesource.com/admin/repos/plugins/download-commands" class="external" target="_blank" rel="noopener">
+Project</a> |
+<a href="https://gerrit.googlesource.com/plugins/download-commands/+doc/master/src/main/resources/Documentation/about.md" class="external" target="_blank" rel="noopener">
+Documentation</a> |
+<a href="https://gerrit.googlesource.com/plugins/download-commands/+doc/master/src/main/resources/Documentation/config.md" class="external" target="_blank" rel="noopener">
+Configuration</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="gitiles">gitiles</h3>
+<div class="paragraph">
+<p>Plugin running Gitiles alongside a Gerrit server.</p>
+</div>
+<div class="paragraph">
+<p><a href="https://gerrit-review.googlesource.com/admin/repos/plugins/gitiles" class="external" target="_blank" rel="noopener">
+Project</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="hooks">hooks</h3>
+<div class="paragraph">
+<p>This plugin runs server-side hooks on events.</p>
+</div>
+<div class="paragraph">
+<p><a href="https://gerrit-review.googlesource.com/admin/repos/plugins/hooks" class="external" target="_blank" rel="noopener">
+Project</a> |
+<a href="https://gerrit.googlesource.com/plugins/hooks/+doc/master/src/main/resources/Documentation/about.md" class="external" target="_blank" rel="noopener">
+Documentation</a> |
+<a href="https://gerrit.googlesource.com/plugins/hooks/+doc/master/src/main/resources/Documentation/config.md" class="external" target="_blank" rel="noopener">
+Configuration</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="plugin-manager">plugin-manager</h3>
+<div class="paragraph">
+<p>This plugins provides an initial wizard to discover and install Gerrit plugins.
+Per default GerritForge CI is used to download the plugin artifacts from, but
+this can be changed per plugin configuration.</p>
+</div>
+<div class="paragraph">
+<p><a href="https://gerrit-review.googlesource.com/admin/repos/plugins/plugin-manager" class="external" target="_blank" rel="noopener">
+Project</a>
+<a href="https://gerrit.googlesource.com/plugins/plugin-manager/+doc/master/src/main/resources/Documentation/about.md" class="external" target="_blank" rel="noopener">
+Documentation</a>
+<a href="https://gerrit.googlesource.com/plugins/plugin-manager/+doc/master/src/main/resources/Documentation/config.md" class="external" target="_blank" rel="noopener">
+Configuration</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="replication">replication</h3>
+<div class="paragraph">
+<p>This plugin can automatically push any changes Gerrit Code Review makes
+to its managed Git repositories to another system. Usually this would
+be configured to provide mirroring of changes, for warm-standby
+backups, or a load-balanced public mirror farm.</p>
+</div>
+<div class="paragraph">
+<p><a href="https://gerrit-review.googlesource.com/admin/repos/plugins/replication" class="external" target="_blank" rel="noopener">
+Project</a> |
+<a href="https://gerrit.googlesource.com/plugins/replication/+doc/master/src/main/resources/Documentation/about.md" class="external" target="_blank" rel="noopener">
+Documentation</a> |
+<a href="https://gerrit.googlesource.com/plugins/replication/+doc/master/src/main/resources/Documentation/config.md" class="external" target="_blank" rel="noopener">
+Configuration</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="reviewnotes">reviewnotes</h3>
+<div class="paragraph">
+<p>Stores review information for Gerrit changes in the <code>refs/notes/review</code>
+branch.</p>
+</div>
+<div class="paragraph">
+<p><a href="https://gerrit-review.googlesource.com/admin/repos/plugins/reviewnotes" class="external" target="_blank" rel="noopener">
+Project</a> |
+<a href="https://gerrit.googlesource.com/plugins/reviewnotes/+doc/master/src/main/resources/Documentation/about.md" class="external" target="_blank" rel="noopener">
+Documentation</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="singleusergroup">singleusergroup</h3>
+<div class="paragraph">
+<p>This plugin provides a group per user. This is useful to assign access
+rights directly to a single user, since in Gerrit access rights can
+only be assigned to groups.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="webhooks">webhooks</h3>
+<div class="paragraph">
+<p>This plugin allows to propagate Gerrit events to remote http endpoints.</p>
+</div>
+<div class="paragraph">
+<p><a href="https://gerrit-review.googlesource.com/admin/repos/plugins/webhooks" class="external" target="_blank" rel="noopener">
+Project</a> |
+<a href="https://gerrit.googlesource.com/plugins/webhooks/+doc/master/src/main/resources/Documentation/about.md" class="external" target="_blank" rel="noopener">
+Documentation</a> |
+<a href="https://gerrit.googlesource.com/plugins/webhooks/+doc/master/src/main/resources/Documentation/config.md" class="external" target="_blank" rel="noopener">
+Configuration</a></p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="other-plugins">Other Plugins</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Besides core plugins there are many other Gerrit plugins available. This Gerrit home
+<a href="https://www.gerritcodereview.com/plugins.html">page for plugins</a> lists them.</p>
+</div>
+<hr style="
+  height: 2px;
+  color: silver;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+">
+<div class="paragraph">
+<p>Part of <a href="index.html">Gerrit Code Review</a></p>
+</div>
+<div style="
+  position:fixed;
+  top:0px;
+  right:0px;
+  text-align:
+  right;
+  padding-top:2px;
+  padding-right:0.5em;
+  padding-bottom:2px;">
+<input size="40"
+  style="line-height: 0.75em;font-size: 0.75em;"
+  id="docSearch"
+  type="text">
+<button style="
+  background:none!important;
+  border:none;
+  padding:0!important;
+  vertical-align:bottom;
+  font-family:'Open Sans','DejaVu Sans',sans-serif;
+  font-size:0.8em;
+  color:#1d4b8f;
+  text-decoration:none;"
+  type="button"
+  id="searchBox">
+  Search
+</button>
+
+<script type="text/javascript">
+var f = function() {
+  window.location = '../#/Documentation/q/' +
+    encodeURIComponent(document.getElementById("docSearch").value);
+}
+document.getElementById("searchBox").onclick = f;
+document.getElementById("docSearch").onkeypress = function(e) {
+  if (13 == (e.keyCode ? e.keyCode : e.which)) {
+    f();
+  }
+}
+</script>
+
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Gerrit Code Review - Supporting Roles</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Gerrit Code Review - Supporting Roles</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#supporter">Supporter</a></li>
+<li><a href="#contributor">Contributor</a></li>
+<li><a href="#maintainer">Maintainer</a></li>
+<li><a href="#steering-committee-member">Engineering Steering Committee Member</a></li>
+<li><a href="#mentor">Mentor</a></li>
+<li><a href="#community-manager">Community Manager</a></li>
+<li><a href="#release-manager">Release Manager</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>As an open source project Gerrit has a large community of people
+driving the project forward. There are many ways to engage with
+the project and get involved.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="supporter">Supporter</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Supporters are individuals who help the Gerrit project and the Gerrit
+community in any way. This includes users that provide feedback to the
+Gerrit community or get in touch by other means.</p>
+</div>
+<div class="paragraph">
+<p>There are many possibilities to support the project, e.g.:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>get involved in discussions on the
+<a href="https://groups.google.com/d/forum/repo-discuss" class="external" target="_blank" rel="noopener">repo-discuss</a>
+mailing list (post your questions, provide feedback, share your
+experiences, help other users)</p>
+</li>
+<li>
+<p>attend community events like user summits (see
+<a href="https://calendar.google.com/calendar?cid=Z29vZ2xlLmNvbV91YmIxcGxhNmlqNzg1b3FianI2MWg0dmRpc0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t" class="external" target="_blank" rel="noopener">
+community calendar</a>)</p>
+</li>
+<li>
+<p>report <a href="https://bugs.chromium.org/p/gerrit/issues/list" class="external" target="_blank" rel="noopener">issues</a>
+and help to clarify existing issues</p>
+</li>
+<li>
+<p>provide feedback on
+<a href="https://www.gerritcodereview.com/releases-readme.html" class="external" target="_blank" rel="noopener">new
+releases and release candidates</a></p>
+</li>
+<li>
+<p>review
+<a href="https://gerrit-review.googlesource.com/q/status:open" class="external" target="_blank" rel="noopener">changes</a>
+and help to verify that they work as advertised, comment if you like
+or dislike a feature</p>
+</li>
+<li>
+<p>serve as contact person for a proprietary Gerrit installation and
+channel feedback from users back to the Gerrit community</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Supporters can:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>post on the
+<a href="https://groups.google.com/d/forum/repo-discuss" class="external" target="_blank" rel="noopener">repo-discuss</a>
+mailing list (Please note that the <code>repo-discuss</code> mailing list is
+managed to prevent spam posts. This means posts from new participants
+must be approved manually before they appear on the mailing list.
+Approvals normally happen within 1 work day. Posts of people who
+participate in mailing list discussions frequently are approved
+automatically)</p>
+</li>
+<li>
+<p>comment on
+<a href="https://gerrit-review.googlesource.com/q/status:open" class="external" target="_blank" rel="noopener">changes</a>
+and vote from <code>-1</code> to <code>+1</code> on the <code>Code-Review</code> label (these votes
+are important to understand the interest in a change and to address
+concerns early, however <a href="#maintainer">maintainers</a> can
+overrule/ignore these votes)</p>
+</li>
+<li>
+<p>download changes to try them out, feedback can be provided as
+comments and by voting (preferably on the <code>Verified</code> label,
+permissions to vote on the <code>Verified</code> label are granted by request,
+see below)</p>
+</li>
+<li>
+<p>file issues in the <a href="https://bugs.chromium.org/p/gerrit/issues/list" class="external" target="_blank" rel="noopener">
+issue tracker</a> and comment on existing issues</p>
+</li>
+<li>
+<p>support the
+<a href="dev-processes.html#design-driven-contribution-process">
+design-driven contribution process</a> by reviewing incoming
+<a href="dev-design-docs.html">design docs</a> and raising concerns during
+the design review</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Supporters who want to engage further can get additional privileges
+on request (ask for it on the
+<a href="https://groups.google.com/d/forum/repo-discuss" class="external" target="_blank" rel="noopener">repo-discuss</a>
+mailing list):</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>become member of the <code>gerrit-verifiers</code> group, which allows to:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>vote on the <code>Verified</code> and <code>Code-Style</code> labels</p>
+</li>
+<li>
+<p>edit hashtags on all changes</p>
+</li>
+<li>
+<p>edit topics on all open changes</p>
+</li>
+<li>
+<p>abandon changes</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>approve posts to the
+<a href="https://groups.google.com/d/forum/repo-discuss" class="external" target="_blank" rel="noopener">repo-discuss</a>
+mailing list</p>
+</li>
+<li>
+<p>administrate issues in the
+<a href="https://bugs.chromium.org/p/gerrit/issues/list" class="external" target="_blank" rel="noopener">issue tracker</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Supporters can become <a href="#contributor">contributors</a> by signing a
+contributor license agreement and contributing code to the Gerrit
+project.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="contributor">Contributor</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Everyone who has a valid <a href="dev-cla.html">contributor license
+agreement</a> and who has <a href="dev-contributing.html">contributed</a> at least
+one change to any project on
+<a href="https://gerrit-review.googlesource.com/" class="external" target="_blank" rel="noopener">
+gerrit-review.googlesource.com</a> is a contributor.</p>
+</div>
+<div class="paragraph">
+<p>Contributions can be:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>new features</p>
+</li>
+<li>
+<p>bug fixes</p>
+</li>
+<li>
+<p>code cleanups</p>
+</li>
+<li>
+<p>documentation updates</p>
+</li>
+<li>
+<p>release notes updates</p>
+</li>
+<li>
+<p>propose <a href="#dev-design-docs">design docs</a> as part of the
+<a href="dev-contributing.html#design-driven-contribution-process">
+design-driven contribution process</a></p>
+</li>
+<li>
+<p>scripts which are of interest to the community</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Contributors have all the permissions that <a href="#supporter">supporters</a>
+have. In addition they have signed a <a href="dev-cla.html">contributor
+license agreement</a> which enables them to push changes.</p>
+</div>
+<div class="paragraph">
+<p>Regular contributors can ask to be added to the <code>gerrit-verifiers</code>
+group, which allows to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>add patch sets to changes of other users</p>
+</li>
+<li>
+<p>propose project config changes (push changes for the
+<code>refs/meta/config</code> branch</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Being member of the <code>gerrit-verifiers</code> group includes further
+permissions (see <a href="#supporter">supporter</a> section above).</p>
+</div>
+<div class="paragraph">
+<p>It&#8217;s highly appreciated if contributors engage in code reviews,
+<a href="dev-design-docs.html#review">design reviews</a> and mailing list
+discussions. If wanted, contributors can also serve as <a href="#mentor">
+mentors</a> to support other contributors with getting their features
+done.</p>
+</div>
+<div class="paragraph">
+<p>Contributors may also be invited to join the Gerrit hackathons which
+happen regularly (e.g. twice a year). Hackathons are announced on the
+<a href="https://groups.google.com/d/forum/repo-discuss" class="external" target="_blank" rel="noopener">repo-discuss</a>
+mailing list (also see
+<a href="https://calendar.google.com/calendar?cid=Z29vZ2xlLmNvbV91YmIxcGxhNmlqNzg1b3FianI2MWg0dmRpc0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t" class="external" target="_blank" rel="noopener">
+community calendar</a>).</p>
+</div>
+<div class="paragraph">
+<p>Outstanding contributors that are actively engaged in the community, in
+activities outlined above, may be nominated as <a href="#maintainer">
+maintainers</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="maintainer">Maintainer</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Maintainers are the gatekeepers of the project and are in charge of
+approving and submitting changes. Refer to the project homepage for
+the <a href="https://www.gerritcodereview.com/members.html#maintainers" class="external" target="_blank" rel="noopener">
+list of current maintainers</a>.</p>
+</div>
+<div class="paragraph">
+<p>Maintainers should only approve changes that:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>they fully understand</p>
+</li>
+<li>
+<p>are in line with the project vision and project scope that are
+defined by the <a href="dev-processes.html#steering-committee">engineering steering
+committee</a>, and should consult them, when in doubt</p>
+</li>
+<li>
+<p>meet the quality expectations of the project (well-tested, properly
+documented, scalable, backwards-compatible)</p>
+</li>
+<li>
+<p>implement usable features or bug fixes (no incomplete/unusable
+things)</p>
+</li>
+<li>
+<p>are not authored by themselves (exceptions are changes which are
+trivial according to the judgment of the maintainer and changes that
+are required by the release process and branch management)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Maintainers are trusted to assess changes, but are also expected to
+align with the other maintainers, especially if large new features are
+being added.</p>
+</div>
+<div class="paragraph">
+<p>Maintainers are highly encouraged to dedicate some of their time to the
+following tasks (but are not required to do so):</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>reviewing changes</p>
+</li>
+<li>
+<p>mailing list discussions and support</p>
+</li>
+<li>
+<p>bug fixing and bug triaging</p>
+</li>
+<li>
+<p>supporting the
+<a href="dev-processes.html#design-driven-contribution-process">
+design-driven contribution process</a> by reviewing incoming
+<a href="dev-design-docs.html">design docs</a> and raising concerns during
+the design review</p>
+</li>
+<li>
+<p>serving as <a href="#mentor">mentor</a></p>
+</li>
+<li>
+<p>doing releases (see link#release-manager[release manager])</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Maintainers can:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>approve changes (vote <code>+2</code> on the <code>Code-Review</code> label); when
+approving changes, <code>-1</code> votes on the <code>Code-Review</code> label can be
+ignored if there is a good reason, in this case the reason should be
+clearly communicated on the change</p>
+</li>
+<li>
+<p>submit changes</p>
+</li>
+<li>
+<p>block submission of changes if they disagree with how a feature is
+being implemented (vote <code>-2</code> on the <code>Code-Review</code> label), but their
+vote can be overruled by the steering committee, see
+<a href="dev-processes.html#project-governance">Project Governance</a></p>
+</li>
+<li>
+<p>nominate new maintainers and vote on nominations (see below)</p>
+</li>
+<li>
+<p>administrate the <a href="https://groups.google.com/d/forum/repo-discuss" class="external" target="_blank" rel="noopener">
+mailing list</a>, the
+<a href="https://bugs.chromium.org/p/gerrit/issues/list" class="external" target="_blank" rel="noopener">issue tracker</a>
+and the <a href="https://www.gerritcodereview.com/" class="external" target="_blank" rel="noopener">homepage</a></p>
+</li>
+<li>
+<p>gain permissions to do Gerrit releases and publish release artifacts</p>
+</li>
+<li>
+<p>create new projects and groups on
+<a href="https://gerrit-review.googlesource.com/" class="external" target="_blank" rel="noopener">
+gerrit-review.googlesource.com</a></p>
+</li>
+<li>
+<p>administrate the Gerrit projects on
+<a href="https://gerrit-review.googlesource.com/" class="external" target="_blank" rel="noopener">
+gerrit-review.googlesource.com</a> (e.g. edit ACLs, update project
+configuration)</p>
+</li>
+<li>
+<p>create events in the
+<a href="https://calendar.google.com/calendar?cid=Z29vZ2xlLmNvbV91YmIxcGxhNmlqNzg1b3FianI2MWg0dmRpc0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t" class="external" target="_blank" rel="noopener">
+community calendar</a></p>
+</li>
+<li>
+<p>discuss with other maintainers on the private maintainers mailing
+list and Slack channel</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In addition, maintainers from Google can:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>approve/reject changes that update project dependencies (vote <code>-1</code> to
+<code>+1</code> on the <code>Library-Compliance</code> label), see
+<a href="dev-processes.html#upgrading-libraries">Upgrading Libraries</a></p>
+</li>
+<li>
+<p>edit permissions on the Gerrit core projects</p>
+</li>
+</ul>
+</div>
+<div id="maintainer-election" class="paragraph">
+<p>Maintainers can nominate new maintainers by posting a nomination on the
+non-public maintainers mailing list. Nominations should stay open for
+at least 10 calendar days so that all maintainers have a chance to
+vote. To be approved as maintainer a minimum of 5 positive votes and no
+negative votes is required. This means if 5 positive votes without
+negative votes have been reached and 10 calendar days have passed, any
+maintainer can close the vote and welcome the new maintainer. Extending
+the voting period during holiday season or if there are not enough
+votes is possible, but the voting period should not exceed 1 month. If
+there are negative votes that are considered unjustified, the
+<a href="dev-processes.html#steering-committee">engineering steering
+committee</a> may get involved to decide whether the new maintainer can be
+accepted anyway.</p>
+</div>
+<div class="paragraph">
+<p>To become a maintainer, a <a href="#contributor">contributor</a> should have a
+history of deep technical contributions across different parts of the
+core Gerrit codebase. However, it is not required to be an expert on
+everything. Things that we want to see from potential maintainers
+include:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>high quality code contributions</p>
+</li>
+<li>
+<p>high quality code reviews</p>
+</li>
+<li>
+<p>activity on the mailing list</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="steering-committee-member">Engineering Steering Committee Member</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Gerrit project has an Engineering Steering Committee (ESC) that
+governs the project, see <a href="dev-processes.html#project-governance">Project Governance</a>.</p>
+</div>
+<div class="paragraph">
+<p>Members of the steering committee are expected to act in the interest
+of the Gerrit project and the whole Gerrit community. Refer to the project
+homepage for the <a href="https://www.gerritcodereview.com/members.html#engineering-steering-committee" class="external" target="_blank" rel="noopener">
+list of current committee members</a>.</p>
+</div>
+<div class="paragraph">
+<p>For those that are familiar with scrum, the steering committee member
+role is similar to the role of an agile product owner.</p>
+</div>
+<div class="paragraph">
+<p>Steering committee members must be able to dedicate sufficient time to
+their role so that the steering committee can satisfy its
+responsibilities and live up to the promise of answering incoming
+requests in a timely manner.</p>
+</div>
+<div class="paragraph">
+<p>Community members may submit new items under the
+<a href="https://bugs.chromium.org/p/gerrit/issues/list?q=component:ESC" class="external" target="_blank" rel="noopener">ESC component</a>
+in the issue tracker, or add that component to existing items, to raise them to
+the attention of ESC members.</p>
+</div>
+<div class="paragraph">
+<p>Community members may contact the ESC members directly using
+<a href="mailto:gerritcodereview-esc@googlegroups.com">this mailing list</a>.
+This is a group that remains private between the individual community
+member and ESC members.</p>
+</div>
+<div class="paragraph">
+<p><a href="#maintainer">Maintainers</a> can become steering committee member by
+election, or by being appointed by Google (only for the seats that
+belong to Google).</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="mentor">Mentor</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A mentor is a <a href="#maintainer">maintainer</a> or <a href="#contributor">
+contributor</a> who is assigned to support the development of a feature
+that was specified in a <a href="dev-design-docs.html">design doc</a> and was
+approved by the <a href="dev-processes.html#steering-committee">steering
+committee</a>.</p>
+</div>
+<div class="paragraph">
+<p>The goal of the mentor is to make the feature successful by:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>doing timely reviews</p>
+</li>
+<li>
+<p>providing technical guidance during code reviews</p>
+</li>
+<li>
+<p>discussing details of the design</p>
+</li>
+<li>
+<p>ensuring that the quality standards are met (well documented,
+sufficient test coverage, backwards compatible etc.)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The implementation is fully done by the contributor, but optionally
+mentors can help out with contributing some changes.</p>
+</div>
+<div class="paragraph">
+<p><a href="#maintainer">Maintainers</a> and <a href="#contributor">contributors</a> can
+volunteer to generally serve as mentors, or to mentor specific features
+(e.g. if they see an upcoming feature on the roadmap that they are
+interested in). To volunteer as mentor, contact the
+<a href="dev-processes.html#steering-committee">steering committee</a> or
+comment on a change that adds a <a href="dev-design-docs.html#propose">
+design doc</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="community-manager">Community Manager</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Community managers should act as stakeholders for the Gerrit community
+and focus on the health of the community. Refer to the project homepage
+for the <a href="https://www.gerritcodereview.com/members.html#community-managers" class="external" target="_blank" rel="noopener">
+list of current community managers</a>.</p>
+</div>
+<div class="paragraph">
+<p>Tasks:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>act as stakeholder for the Gerrit community towards the
+<a href="dev-processes.html#steering-committee">steering committee</a></p>
+</li>
+<li>
+<p>ensure that the <a href="dev-contributing.html#mentorship">mentorship
+process</a> works</p>
+</li>
+<li>
+<p>deescalate conflicts in the Gerrit community</p>
+</li>
+<li>
+<p>constantly improve community processes (e.g. contribution process)</p>
+</li>
+<li>
+<p>watch out for community issues and address them proactively</p>
+</li>
+<li>
+<p>serve as contact person for community issues</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Community members may submit new items under the
+<a href="https://bugs.chromium.org/p/gerrit/issues/list?q=component:Community" class="external" target="_blank" rel="noopener">Community component</a>
+backlog, for community managers to refine. Only public topics should be
+issued through that backlog.</p>
+</div>
+<div class="paragraph">
+<p>Sensitive topics are to be privately discussed using
+<a href="mailto:gerritcodereview-community-managers@googlegroups.com">this mailing list</a>.
+This is a group that remains private between the individual community
+member and community managers.</p>
+</div>
+<div class="paragraph">
+<p>The community managers should be a pair or trio that shares the work:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>One Googler that is appointed by Google.</p>
+</li>
+<li>
+<p>One or two non-Googlers, elected by the community if there are more
+than two candidates. If there is no candidate, we only have the one
+community manager from Google.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Community managers must not be <a href="#steering-committee-member">
+steering committee members</a> at the same time so that they can represent
+the community without conflict of interest.</p>
+</div>
+<div class="paragraph">
+<p>Anybody from the Gerrit community can candidate as community manager.
+This means, in contrast to candidating for the ESC, candidating as
+community manager is not limited to Gerrit maintainers. Otherwise the
+nomination process, election process and election period for the
+non-Google community manager are the same as for
+<a href="dev-processes.html#steering-committee-election">steering committee
+members</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="release-manager">Release Manager</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Each major Gerrit release is driven by a Gerrit <a href="#maintainer">
+maintainer</a>, the so called release manager.</p>
+</div>
+<div class="paragraph">
+<p>The release manager is responsible for:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>identifying release blockers and informing about them</p>
+</li>
+<li>
+<p>creating stable branches and updating version numbers</p>
+</li>
+<li>
+<p>creating release candidates, the final major release and minor
+releases</p>
+</li>
+<li>
+<p>announcing releases on the mailing list and collecting feedback</p>
+</li>
+<li>
+<p>ensuring that releases meet minimal quality expectations (Gerrit
+starts, upgrade from previous version works)</p>
+</li>
+<li>
+<p>publishing release artifacts</p>
+</li>
+<li>
+<p>ensuring quality and completeness of the release notes</p>
+</li>
+<li>
+<p>cherry-picking bug fixes, see <a href="dev-processes.html#backporting">
+Backporting to stable branches</a></p>
+</li>
+<li>
+<p>estimating the risk of new features that are added on stable
+branches, see <a href="dev-processes.html#dev-in-stable-branches">
+Development in stable branches</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Before each release, the release manager is appointed by consensus among
+the maintainers. Volunteers are welcome, but it&#8217;s also a goal to fairly
+share this work between maintainers and contributing companies.</p>
+</div>
+<hr style="
+  height: 2px;
+  color: silver;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+">
+<div class="paragraph">
+<p>Part of <a href="index.html">Gerrit Code Review</a></p>
+</div>
+<div style="
+  position:fixed;
+  top:0px;
+  right:0px;
+  text-align:
+  right;
+  padding-top:2px;
+  padding-right:0.5em;
+  padding-bottom:2px;">
+<input size="40"
+  style="line-height: 0.75em;font-size: 0.75em;"
+  id="docSearch"
+  type="text">
+<button style="
+  background:none!important;
+  border:none;
+  padding:0!important;
+  vertical-align:bottom;
+  font-family:'Open Sans','DejaVu Sans',sans-serif;
+  font-size:0.8em;
+  color:#1d4b8f;
+  text-decoration:none;"
+  type="button"
+  id="searchBox">
+  Search
+</button>
+
+<script type="text/javascript">
+var f = function() {
+  window.location = '../#/Documentation/q/' +
+    encodeURIComponent(document.getElementById("docSearch").value);
+}
+document.getElementById("searchBox").onclick = f;
+document.getElementById("docSearch").onkeypress = function(e) {
+  if (13 == (e.keyCode ? e.keyCode : e.which)) {
+    f();
+  }
+}
+</script>
+
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

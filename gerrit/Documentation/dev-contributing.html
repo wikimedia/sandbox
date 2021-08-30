@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Gerrit Code Review - Contributing</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Gerrit Code Review - Contributing</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#cla">Contributor License Agreement</a></li>
+<li><a href="#contribution-processes">Contribution Processes</a>
+<ul class="sectlevel2">
+<li><a href="#comparison">Quick Comparison</a></li>
+<li><a href="#lightweight-contribution-process">Lightweight Contribution Process</a></li>
+<li><a href="#design-driven-contribution-process">Design-driven Contribution Process</a></li>
+</ul>
+</li>
+<li><a href="#mentorship">Mentorship</a></li>
+<li><a href="#esc-dd-evaluation">How the ESC evaluates design documents</a>
+<ul class="sectlevel2">
+<li><a href="#_general_process">General Process</a></li>
+<li><a href="#_evaluation">Evaluation</a></li>
+<li><a href="#_impact">Impact</a></li>
+<li><a href="#_complexity">Complexity</a></li>
+<li><a href="#_core_vs_plugin_decision">Core vs. Plugin decision</a></li>
+<li><a href="#_commitment">Commitment</a></li>
+<li><a href="#_community">Community</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="cla">Contributor License Agreement</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In order to contribute to Gerrit a <a href="dev-cla.html" class="external" target="_blank" rel="noopener">Contributor
+License Agreement</a> must be completed before
+contributions are accepted.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="contribution-processes">Contribution Processes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Gerrit project offers two contribution processes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#lightweight-contribution-process">Lightweight Contribution
+Process</a></p>
+</li>
+<li>
+<p><a href="#design-driven-contribution-process">Design-Driven Contribution
+Process</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The lightweight contribution process has little overhead and is best
+suited for small contributions (documentation updates, bug fixes, small
+features). Contributions are pushed as changes and
+<a href="dev-roles.html#maintainer" class="external" target="_blank" rel="noopener">maintainers</a>
+review them adhoc.</p>
+</div>
+<div class="paragraph">
+<p>For large/complex features, it is required to follow the
+<a href="#design-driven-contribution-process">design-driven contribution
+process</a> and specify the feature in a <a href="dev-design-docs.html" class="external" target="_blank" rel="noopener">design
+doc</a> before starting with the implementation.</p>
+</div>
+<div class="paragraph">
+<p>If <a href="dev-roles.html#contributor" class="external" target="_blank" rel="noopener">contributors</a>
+choose the lightweight contribution process and during the review it turns out
+that the feature is too large or complex,
+<a href="dev-roles.html#maintainer" class="external" target="_blank" rel="noopener">maintainers</a> can
+require to follow the design-driven contribution process instead.</p>
+</div>
+<div class="paragraph">
+<p>If you are in doubt which process is right for you, consult the
+<a href="https://groups.google.com/d/forum/repo-discuss" class="external" target="_blank" rel="noopener">repo-discuss</a>
+mailing list.</p>
+</div>
+<div class="paragraph">
+<p>These contribution processes apply to everyone who contributes code to
+the Gerrit project, including <a href="dev-roles.html#maintainer" class="external" target="_blank" rel="noopener">
+maintainers</a>. When reading this document, keep in
+mind that maintainers are also contributors when they contribute code.</p>
+</div>
+<div class="paragraph">
+<p>If a new feature is large or complex, it is often difficult to find a
+maintainer who can take the time that is needed for a thorough review,
+and who can help with getting the changes submitted. To avoid that this
+results in unpredictable long waiting times during code review,
+contributors can ask for <a href="#mentorship">mentor support</a>. A mentor
+helps with timely code reviews and technical guidance. Doing the
+implementation is still the responsibility of the contributor.</p>
+</div>
+<div class="sect2">
+<h3 id="comparison">Quick Comparison</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"></th>
+<th class="tableblock halign-left valign-top">Lightweight Contribution Process</th>
+<th class="tableblock halign-left valign-top">Design-Driven Contribution Process</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Overhead</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">low (write good commit message, address review comments)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">high (write <a href="dev-design-docs.html" class="external" target="_blank" rel="noopener">design doc</a>
+and get it approved)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Technical Guidance</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">by reviewer</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">during the design review and by
+reviewer/mentor</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Review</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">adhoc (when reviewer is available)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">by a dedicated mentor (if
+a <a href="#mentorship">mentor</a> was assigned)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Caveats</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">features may get vetoed after the implementation was already
+done, maintainers may make the design-driven contribution process
+required if a change gets too complex/large</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">design doc must stay open
+for a minimum of 10 calendar days, a mentor may not be available
+immediately</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Applicable to</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">documentation updates, bug fixes, small features</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">large/complex features</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="lightweight-contribution-process">Lightweight Contribution Process</h3>
+<div class="paragraph">
+<p>The lightweight contribution process has little overhead and is best
+suited for small contributions (documentation updates, bug fixes, small
+features). For large/complex features the
+<a href="#design-driven-contribution-process">design-driven contribution
+process</a> is required.</p>
+</div>
+<div class="paragraph">
+<p>As Gerrit is a code review tool, naturally contributions will
+be reviewed before they will get submitted to the code base.  To
+start your contribution, please make a git commit and upload it
+for review to the <a href="https://gerrit-review.googlesource.com/" class="external" target="_blank" rel="noopener">
+gerrit-review.googlesource.com</a> Gerrit server.  To
+help speed up the review of your change, review these <a href="dev-crafting-changes.html" class="external" target="_blank" rel="noopener">
+guidelines</a> before submitting your change.  You can
+view the pending Gerrit contributions and their statuses
+<a href="https://gerrit-review.googlesource.com/#/q/status:open+project:gerrit" class="external" target="_blank" rel="noopener">here</a>.</p>
+</div>
+<div class="paragraph">
+<p>Depending on the size of that list it might take a while for
+your change to get reviewed.  Naturally there are fewer
+<a href="dev-roles.html#maintainer" class="external" target="_blank" rel="noopener">maintainers</a>, that
+can approve changes, than <a href="dev-roles.html#contributor" class="external" target="_blank" rel="noopener">contributors</a>;
+so anything that you can do to ensure that your contribution will undergo fewer
+revisions will speed up the contribution process.  This includes
+helping out reviewing other people&#8217;s changes to relieve the load from
+the maintainers.  Even if you are not familiar with Gerrit&#8217;s internals,
+it would be of great help if you can download, try out, and comment on
+new features.  If it works as advertised, say so, and if you have the
+privileges to do so, go ahead and give it a <code>+1 Verified</code>.  If you
+would find the feature useful, say so and give it a <code>+1 Code Review</code>.</p>
+</div>
+<div class="paragraph">
+<p>And finally, the quicker you respond to the comments of your reviewers,
+the quicker your change might get merged!  Try to reply to every
+comment after submitting your new patch, particularly if you decided
+against making the suggested change. Reviewers don&#8217;t want to seem like
+nags and pester you if you haven&#8217;t replied or made a fix, so it helps
+them know if you missed it or decided against it.</p>
+</div>
+<div class="paragraph">
+<p>Features or API extensions, even if they are small, will incur
+long-time maintenance and support burden, so they should be left
+pending for at least 24 hours to give maintainers in all timezones a
+chance to evaluate.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="design-driven-contribution-process">Design-driven Contribution Process</h3>
+<div class="paragraph">
+<p>The design-driven contribution process applies to large/complex
+features.</p>
+</div>
+<div class="paragraph">
+<p>For large/complex features it is important to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>agree on the functionality and scope before spending too much time
+on the implementation</p>
+</li>
+<li>
+<p>ensure that they are in line with Gerrit&#8217;s project scope and vision</p>
+</li>
+<li>
+<p>ensure that they are well aligned with other features</p>
+</li>
+<li>
+<p>think about possibilities how the feature could be evolved over time</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This is why for large/complex features it is required to describe the
+feature in a <a href="dev-design-docs.html" class="external" target="_blank" rel="noopener">design doc</a>
+and get it approved by the
+<a href="dev-processes.html#steering-committee" class="external" target="_blank" rel="noopener">steering committee</a>,
+before starting the implementation.</p>
+</div>
+<div class="paragraph">
+<p>The design-driven contribution process has the following steps:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A <a href="dev-roles.html#contributor" class="external" target="_blank" rel="noopener">contributor</a>
+<a href="dev-design-docs.html#propose" class="external" target="_blank" rel="noopener">proposes</a> a new
+feature by uploading a change with a
+<a href="dev-design-docs.html" class="external" target="_blank" rel="noopener">design doc</a>.</p>
+</li>
+<li>
+<p>The design doc is <a href="dev-design-docs.html#review" class="external" target="_blank" rel="noopener">reviewed</a>
+by interested parties from the community. The design review is public
+and everyone can comment and raise concerns.</p>
+</li>
+<li>
+<p>Design docs should stay open for a minimum of 10 calendar days so
+that everyone has a fair chance to join the review.</p>
+</li>
+<li>
+<p>Within 30 calendar days the contributor should hear back from the
+<a href="dev-processes.html#steering-committee" class="external" target="_blank" rel="noopener">steering committee</a>
+whether the proposed feature is in scope of the project and if it can
+be accepted.</p>
+</li>
+<li>
+<p>To be submitted, the design doc needs to be approved by the
+<a href="dev-processes.html#steering-committee" class="external" target="_blank" rel="noopener">steering committee</a>.</p>
+</li>
+<li>
+<p>After the design was approved, the implementation is done by pushing
+changes for review, see <a href="#lightweight-contribution-process">
+lightweight contribution process</a>. Changes that are associated with
+a design should all share a common hashtag. The contributor is the
+main driver of the implementation and responsible that it is done.
+Others from the Gerrit community are usually much welcome to help
+with the implementation.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In order to be accepted/submitted, it is not necessary that the design
+doc fully specifies all the details, but the idea of the feature and
+how it fits into Gerrit should be sufficiently clear (judged by the
+steering committee). Contributors are expected to keep the design doc
+updated and fill in gaps while they go forward with the implementation.
+We expect that implementing the feature and updating the design doc
+will be an iterative process.</p>
+</div>
+<div class="paragraph">
+<p>While the design doc is still in review, contributors may already start
+with the implementation (e.g. do some prototyping to demonstrate parts
+of the proposed design), but those changes should not be submitted
+while the design wasn&#8217;t approved yet.</p>
+</div>
+<div class="paragraph">
+<p>By approving a design, the steering committee commits to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Accepting the feature when it is implemented.</p>
+</li>
+<li>
+<p>Supporting the feature by assigning a <a href="dev-roles.html#mentor" class="external" target="_blank" rel="noopener">
+mentor</a> (if requested, see <a href="#mentorship">mentorship</a>).</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If the implementation of a feature gets stuck and it&#8217;s unclear whether
+the feature gets fully done, it should be discussed with the steering
+committee how to proceed. If the contributor cannot commit to finish
+the implementation and no other contributor can take over, changes that
+have already been submitted for the feature might get reverted so that
+there is no unused or half-finished code in the code base.</p>
+</div>
+<div class="paragraph">
+<p>For contributors, the design-driven contribution process has the
+following advantages:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>By writing a design doc, the feature gets more attention. During the
+design review, feedback from various sides can be collected, which
+likely leads to improvements of the feature.</p>
+</li>
+<li>
+<p>Once a design was approved by the
+<a href="dev-processes.html#steering-committee" class="external" target="_blank" rel="noopener">steering committee</a>,
+the contributor can be almost certain that the feature will be accepted.
+Hence, there is only a low risk to invest into implementing a feature
+and see it being rejected later during the code review, as it can
+happen with the lightweight contribution process.</p>
+</li>
+<li>
+<p>The contributor can <a href="#mentorship">get a dedicated mentor assigned</a>
+who provides timely reviews and serves as a contact person for
+technical questions and discussing details of the design.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="mentorship">Mentorship</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For features for which a <a href="dev-design-docs.html" class="external" target="_blank" rel="noopener">design</a>
+has been approved (see <a href="#design-driven-contribution-process">design-driven
+contribution process</a>), contributors can gain the support of a mentor
+if they are committed to implement the feature.</p>
+</div>
+<div class="paragraph">
+<p>A <a href="dev-roles.html#mentor" class="external" target="_blank" rel="noopener">mentor</a> helps with:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>doing timely reviews</p>
+</li>
+<li>
+<p>providing technical guidance during code reviews</p>
+</li>
+<li>
+<p>discussing details of the design</p>
+</li>
+<li>
+<p>ensuring that the quality standards are met (well documented,
+sufficient test coverage, backwards compatible etc.)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>A feature can have more than one mentor. To be able to deliver the
+promised support, at least one of the mentors must be a
+<a href="dev-roles.html#maintainer" class="external" target="_blank" rel="noopener">maintainer</a>.</p>
+</div>
+<div class="paragraph">
+<p>Mentors are assigned by the <a href="dev-processes.html#steering-committee" class="external" target="_blank" rel="noopener">
+steering committee</a>. To gain a mentor, ask for a
+mentor in the <a href="dev-design-doc-template.html#implementation-plan" class="external" target="_blank" rel="noopener">Implementation
+Plan</a> section of the design doc or ask the steering
+committee after the design has been approved.</p>
+</div>
+<div class="paragraph">
+<p>Mentors may not be available immediately. In this case, the steering
+committee should include the approved feature into the roadmap or
+prioritize it in the backlog. This way, it is transparent for the
+contributor when they can expect to be able to work on the feature with
+mentor support.</p>
+</div>
+<div class="paragraph">
+<p>Once the implementation phase starts, the contributor is expected to do
+the implementation in a timely manner.</p>
+</div>
+<div class="paragraph">
+<p>For every mentorship, the end must be clearly defined. The design doc
+must specify:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>a maximum time frame for the mentorship, after which the mentorship
+automatically ends, even if the feature is not done yet</p>
+</li>
+<li>
+<p>done criteria that define when the feature is done and the mentorship
+ends</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If a feature is not finished in time, it should be discussed with the
+steering committee how to proceed. If the contributor cannot commit to
+finish the implementation in time and no other contributor can take
+over, changes that have already been submitted for the feature might
+get reverted so that there is no unused or half-finished code in the
+code base.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="esc-dd-evaluation">How the ESC evaluates design documents</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section describes how the ESC evaluates design documents. It’s
+meant as a guideline rather than being prescriptive for both ESC
+members and contributors.</p>
+</div>
+<div class="sect2">
+<h3 id="_general_process">General Process</h3>
+<div class="paragraph">
+<p>As part of the design process, the ESC makes a final decision if a
+design gets to be implemented. If there are multiple alternative
+solutions, the ESC will decide which solution can be implemented.</p>
+</div>
+<div class="paragraph">
+<p>The ESC should wait until all contributors had the chance to
+voice their opinion in review comments or by proposing alternative
+solutions. Due to the infrequent ESC meetings (every 2-4 weeks)
+the ESC might discuss documents in cases where the discussion is
+already advanced far enough, but not make a decision yet. In this
+case, contributors can still voice concerns or discuss alternatives.
+The decision can be at the next meeting or via email in between
+meetings.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_evaluation">Evaluation</h3>
+<div class="paragraph">
+<p>Product/Vision fit</p>
+</div>
+<div class="paragraph">
+<p>Q: <code>Do we believe this feature belongs to Gerrit Code Review use-cases?</code></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Yes: Customizable dashboards</p>
+</li>
+<li>
+<p>No: UI for managing an LDAP server</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Q: <code>Is the proposed solution aligned with Gerrit’s vision?</code></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Yes: Showing comments of older patch sets in newer patch sets to
+keep track (core code review)</p>
+</li>
+<li>
+<p>No: Implement a bug tracker in Gerrit (not core code review).</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_impact">Impact</h3>
+<div class="paragraph">
+<p>Q: <code>Will the new feature have a measurable, positive impact?</code></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Yes: Increased productivity, faster/smoother workflow, etc.</p>
+</li>
+<li>
+<p>Yes: Better latency, more reliable system.</p>
+</li>
+<li>
+<p>No: Unclear impact or lacking metrics to measure.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_complexity">Complexity</h3>
+<div class="paragraph">
+<p>Q: <code>Can we support/maintain this feature once it is in Gerrit?</code></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Yes: Code will fit into codebase, be well tested, easy to
+understand.</p>
+</li>
+<li>
+<p>No: Will add code or a workflow that is hard to understand
+and easy to misinterpret.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Q: <code>Is the proposed feature or rework adding unnecessary complexity?</code></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Yes: Adding a dependency on a well-supported library.</p>
+</li>
+<li>
+<p>No: Adding a dependency on a library that is not widely used
+or not actively maintained.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_core_vs_plugin_decision">Core vs. Plugin decision</h3>
+<div class="paragraph">
+<p>Q: <code>Would this fit better in a plugin?</code></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Yes:The proposed feature or rework is an implementation (e.g. Lucene
+is an index implementation) of a generic concept that others
+might want to implement differently.</p>
+</li>
+<li>
+<p>Yes: The proposed feature or rework is very specific to a custom setup.</p>
+</li>
+<li>
+<p>No: The proposed feature or rework is applicable to a wider user
+base.</p>
+</li>
+<li>
+<p>No: The proposed feature or rework is a <code>core code review feature</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_commitment">Commitment</h3>
+<div class="paragraph">
+<p>Q: <code>Is someone willing to implement it?</code> (this question is
+especially important when reviewers propose alternative designs
+to the author’s own solution).</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Yes: The author or someone else commits to implementing the
+proposed solution.</p>
+</li>
+<li>
+<p>Yes: If a mentorship is required, a mentor is willing to help.</p>
+</li>
+<li>
+<p>No: Unclear ownership, mentorship or implementation plan.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_community">Community</h3>
+<div class="paragraph">
+<p>Q: <code>If in doubt, is there a substantial benefit to a long-standing
+community member with many users?</code></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The community shapes the future of Gerrit as a product. In
+cases of doubt, the ESC can be more generous with long-standing
+community members compared to <code>drive-by</code> contributions.</p>
+</li>
+</ul>
+</div>
+<hr style="
+  height: 2px;
+  color: silver;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+">
+<div class="paragraph">
+<p>Part of <a href="index.html">Gerrit Code Review</a></p>
+</div>
+<div style="
+  position:fixed;
+  top:0px;
+  right:0px;
+  text-align:
+  right;
+  padding-top:2px;
+  padding-right:0.5em;
+  padding-bottom:2px;">
+<input size="40"
+  style="line-height: 0.75em;font-size: 0.75em;"
+  id="docSearch"
+  type="text">
+<button style="
+  background:none!important;
+  border:none;
+  padding:0!important;
+  vertical-align:bottom;
+  font-family:'Open Sans','DejaVu Sans',sans-serif;
+  font-size:0.8em;
+  color:#1d4b8f;
+  text-decoration:none;"
+  type="button"
+  id="searchBox">
+  Search
+</button>
+
+<script type="text/javascript">
+var f = function() {
+  window.location = '../#/Documentation/q/' +
+    encodeURIComponent(document.getElementById("docSearch").value);
+}
+document.getElementById("searchBox").onclick = f;
+document.getElementById("docSearch").onkeypress = function(e) {
+  if (13 == (e.keyCode ? e.keyCode : e.which)) {
+    f();
+  }
+}
+</script>
+
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Creating and Editing Changes in the Gerrit Web Interface</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Creating and Editing Changes in the Gerrit Web Interface</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_overview">Overview</a></li>
+<li><a href="#create-change">Creating a Change</a></li>
+<li><a href="#add-files">Adding a File to a Change</a></li>
+<li><a href="#editing-change">Modifying a Change</a></li>
+<li><a href="#submit-change">Starting the Review</a></li>
+<li><a href="#review-edits">Reviewing Changes</a></li>
+<li><a href="#search-for-changes">Searching for Changes with Pending Edits</a></li>
+<li><a href="#change-edit-actions">Modifying Changes</a>
+<ul class="sectlevel2">
+<li><a href="#rebase-change-edit">Rebasing a Change Edit</a></li>
+<li><a href="#download-change-edit-patch">Downloading a Patch</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_overview">Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following content explains how to use the Gerrit web interface to create
+and edit changes. Use the web interface to make minor changes to files. When
+you create a change in the Gerrit user interface, you don&#8217;t clone a Gerrit
+repository or use the CLI to issue Git commands — you perform your work
+directly in the Gerrit web interface.</p>
+</div>
+<div class="paragraph">
+<p>To learn more, see the <a href="intro-user.html">Gerrit User&#8217;s Guide</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="create-change">Creating a Change</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To create a change in the Gerrit web interface:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>From the <a href="http://gerrit-review.googlesource.com" class="external" target="_blank" rel="noopener">Gerrit Code Review</a>
+dashboard, select Browse &gt; Repositories.</p>
+</li>
+<li>
+<p>Under Repository Name, click the name of the repository you want to work
+on. For example, Public-Projects. To find a specific repository, enter all
+or part of its name next to Filter:</p>
+<div class="imageblock">
+<div class="content">
+<img src="images/inline-edit-home-page.png" alt="inline edit home page" width="600">
+</div>
+</div>
+</li>
+<li>
+<p>In the left navigation panel for the repository you selected, click
+Commands:</p>
+<div class="imageblock">
+<div class="content">
+<img src="images/inline-edit-create-change.png" alt="inline edit create change" width="350">
+</div>
+</div>
+</li>
+<li>
+<p>Under Repository Commands, click Create Change.</p>
+</li>
+<li>
+<p>In the Create Change window, enter the following information:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Select branch for new change: Specify the destination branch of the
+change.</p>
+</li>
+<li>
+<p>Provide base commit SHA-1 for change: Leave this field blank.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+Git uses a unique SHA-1 value to identify each and every commit (in
+other words, each Git commit generates a new SHA-1 hash). This value differs
+from a Gerrit Change-Id, which is used by Gerrit to uniquely identify a
+change. The Gerrit Change-Id remains static throughout the life of a Gerrit
+change.
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Description: Briefly describe the change. Be sure to use the
+<a href="dev-contributing.html#commit-message">Commit Message</a> format.
+The first line becomes the subject of the change and is included in
+the Commit Message. Because the message also appears on its own in
+dashboards and in the results of <code>git log --pretty=oneline output</code>,
+make the message informative and brief.</p>
+</li>
+<li>
+<p>Private change: Select this option to designate this change as private.
+Only you (and any reviewers you add) can see your private changes.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>On the Create Change window, click Create. Gerrit creates a public Work
+In Progress (WIP) change. Until the change is sent for review, it remains a
+WIP and appears in <em>your</em> dashboard only. In addition, all email
+notifications are turned off.</p>
+</li>
+<li>
+<p>Add the files you want to be reviewed.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="add-files">Adding a File to a Change</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Files can only be added to changes that have not been merged into the code
+base.</p>
+</div>
+<div class="paragraph">
+<p>To add a file to the change:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>In the top right corner of the change, click Edit.</p>
+</li>
+<li>
+<p>Next to Files, click Open:</p>
+<div class="imageblock">
+<div class="content">
+<img src="images/inline-edit-open-file.png" alt="inline edit open file" width="600">
+</div>
+</div>
+</li>
+<li>
+<p>In the Open File window, do one of the following:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>To add an existing file:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Enter all or part of the file name in the text box. Gerrit automatically
+populates a list of possible matching files:</p>
+<div class="imageblock">
+<div class="content">
+<img src="images/inline-edit-prefill-files.png" alt="inline edit prefill files" width="500">
+</div>
+</div>
+</li>
+<li>
+<p>Select the file you want to add to the change.</p>
+</li>
+<li>
+<p>Click Open.</p>
+<div class="paragraph">
+<p><em>or,</em></p>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>To create a new file, enter the name of the new file you want to add to the
+change and then click Open.</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="editing-change">Modifying a Change</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To work on a file you&#8217;ve added to a change:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>On the change page, click the file name. When you add a new file to a
+change, a blank page is displayed. When you add an existing file to a
+change, the entire file is displayed.</p>
+</li>
+<li>
+<p>Update the file and then click Save. You <em>must</em> click Save to add the
+file to the change.</p>
+</li>
+<li>
+<p>To close the text editor and display the change page, click Close.</p>
+<div class="paragraph">
+<p>When you save your work and close the file, the file is added to the change
+and the file name is listed in the Files section. The letter displayed to the
+left of the file name denotes the action performed on the file. In this case,
+one file was modified:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>M: Modified</p>
+</li>
+<li>
+<p>A: Added</p>
+</li>
+<li>
+<p>D: Deleted</p>
+<div class="imageblock">
+<div class="content">
+<img src="images/inline-edit-add-file-page.png" alt="inline edit add file page" width="650">
+</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>When you&#8217;re done editing and adding files, click Stop Editing.</p>
+</li>
+<li>
+<p>Click Publish Edit. When you publish an edit, you promote it to a regular
+patch set. The special ref that represents the change is deleted when the
+change is published.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Not happy with your edits? Click Delete Edit.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="submit-change">Starting the Review</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When you start a review, Gerrit removes the WIP designation and submits
+the change to code review. The change appears in other Gerrit dashboards and
+reviewers are notified when the change is updated.</p>
+</div>
+<div class="paragraph">
+<p>To start a review:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open the change and then click Start Review:</p>
+<div class="imageblock">
+<div class="content">
+<img src="images/inline-edit-start-review-button.png" alt="inline edit start review button" width="400">
+</div>
+</div>
+</li>
+<li>
+<p>In the change notification form:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Add the names of the reviewers and anyone else you want to copy.</p>
+</li>
+<li>
+<p>Describe the change.</p>
+</li>
+<li>
+<p>Click Start Review:</p>
+<div class="imageblock">
+<div class="content">
+<img src="images/inline-edit-review-message.png" alt="inline edit review message" width="550">
+</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The change is now displayed in other Gerrit dashboards and reviewers are
+notified that the change is available for code review.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="review-edits">Reviewing Changes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use the side-by-side diff screen.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/inline-edit-diff-screen.png" alt="inline edit diff screen" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>It&#8217;s possible that subsequent patch sets may exist. For example, this sequence
+means that the change was created on top of patch set 9 while a regular
+patchset was uploaded later:</p>
+</div>
+<div class="paragraph">
+<p>1 2 3 4 5 6 7 8 9 edit 10</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="search-for-changes">Searching for Changes with Pending Edits</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To find changes with pending edits:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>From the Gerrit dashboard, select Your &gt; Changes. All your changes are
+listed, according to Work in progress, Outgoing reviews, Incoming reviews,
+CCed on, and Recently closed.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For more information about Search operators, see
+<a href="user-search.html">Searching Changes</a>. For example, to find only
+those changes that contain edits, see <a href="user-search.html#has">has:edit</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="change-edit-actions">Modifying Changes</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="rebase-change-edit">Rebasing a Change Edit</h3>
+<div class="paragraph">
+<p>Only when a change is based on the current patch set can the change be
+published. In the meantime, if a new patch set has been uploaded, the change
+must be rebased on top of the current patch set before the change can be
+published.</p>
+</div>
+<div class="paragraph">
+<p>To rebase a change:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Open the change and then click Rebase Edit.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If the rebase generates conflicts, the conflicts can&#8217;t be resolved in the web
+interface. Instead, the change must be downloaded (see below) and the conflicts
+resolved in the local environment.</p>
+</div>
+<div class="paragraph">
+<p>When the conflicts are resolved in the local environment, the commit that
+contains the conflict resolution can be uploaded by setting <code>edit</code> as an
+option on the target ref. For example:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>$ git push host HEAD:refs/for/master%edit</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="download-change-edit-patch">Downloading a Patch</h3>
+<div class="paragraph">
+<p>As with regular patch sets, you can download changes. For example, as provided
+by the <code>download-commands</code> plugin. Only the owners of a change and those
+users granted the
+<a href="access-control.html#capability_accessDatabase">accessDatabase</a> global
+capability can access change refs.</p>
+</div>
+<div class="paragraph">
+<p>To download a change:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open the change, click the More icon, and then select Download patch.</p>
+</li>
+<li>
+<p>Copy the desired scheme from the Download drop-down.</p>
+</li>
+<li>
+<p>Paste the command into a terminal window.</p>
+</li>
+</ol>
+</div>
+<hr style="
+  height: 2px;
+  color: silver;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+">
+<div class="paragraph">
+<p>Part of <a href="index.html">Gerrit Code Review</a></p>
+</div>
+<div class="paragraph">
+<p>SEARCHBOX</p>
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

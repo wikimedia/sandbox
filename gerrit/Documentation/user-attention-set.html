@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Gerrit Code Review - Attention Set</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Gerrit Code Review - Attention Set</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#whose-turn">Whose turn is it?</a>
+<ul class="sectlevel2">
+<li><a href="#_rules">Rules</a></li>
+<li><a href="#_interaction">Interaction</a></li>
+<li><a href="#bots">Bots</a></li>
+<li><a href="#_dashboard">Dashboard</a></li>
+<li><a href="#_emails">Emails</a></li>
+<li><a href="#_assignee">Assignee</a></li>
+<li><a href="#_bold_changes_mark_reviewed">Bold Changes / Mark Reviewed</a></li>
+<li><a href="#_for_gerrit_admins">For Gerrit Admins</a></li>
+<li><a href="#_important_note_for_all_host_owners_project_owners_and_bot_owners">Important note for all host owners, project owners, and bot owners</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Report a bug or send feedback using
+<a href="https://bugs.chromium.org/p/gerrit/issues/entry?template=Attention+Set">this Monorail template</a>.
+You can also report a bug through the bug icon in the user hovercard and in the
+reply dialog.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="whose-turn">Whose turn is it?</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Code Review is a turn-based workflow going back and forth between the change
+owner and reviewers. For every change Gerrit maintains an "Attention Set" with
+users that are currently expected to act on the change. Both on the dashboard
+and on the change page, this is expressed by an arrow icon before a (bolded)
+user name:</p>
+</div>
+<div class="imageblock" style="text-align: center">
+<div class="content">
+<img src="images/user-attention-set-icon.png" alt="account chip with attention icon">
+</div>
+</div>
+<div class="paragraph">
+<p>While the attention set brings clarity to the process it also comes with
+responsibilities and expectations. To provide the best outcome for all users, we
+suggest following these principles:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Reviewers are expected to respond in a timely manner when it is their turn. If
+you don&#8217;t plan to respond within ~24h, then you should either remove yourself
+from the attention set or you should at least send a clarification message to
+the change owner.</p>
+</li>
+<li>
+<p>Change owners are expected to manage the attention set of their changes
+carefully. They should make sure that reviewers are only in the attention set
+when the owner waits for a response from them.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>On the plus side you can strictly ignore everyone else&#8217;s changes, if you are not
+in the attention set. :-)</p>
+</div>
+<div class="sect2">
+<h3 id="_rules">Rules</h3>
+<div class="paragraph">
+<p>To help with the back and forth, Gerrit applies some basic automated rules for
+changing the attention set:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If reviewers are added to a change, then they are added to the attention set.</p>
+</li>
+<li>
+<p>Exception: A reviewer adding themselves along with a comment or vote.</p>
+</li>
+<li>
+<p>If an active change is submitted, abandoned or reset to "work in progress",
+then all users are removed from the attention set.</p>
+</li>
+<li>
+<p>Replying (commenting, voting or just writing a change message) removes the
+replying user from the attention set. And it adds all participants of comment
+conversations that the user is replying to.</p>
+</li>
+<li>
+<p>If a <strong>reviewer</strong> replies, then the change owner (and uploader) are added to the
+attention set.</p>
+</li>
+<li>
+<p>For merged and abandoned changes the owner is added only when a human creates
+an unresolved comment.</p>
+</li>
+<li>
+<p>Only owner, uploader, reviewers and ccs can be in the attention set.</p>
+</li>
+<li>
+<p>The rules for service accounts are different, see <a href="#bots">Bots</a>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>!IMPORTANT!</strong> These rules are not meant to be super smart and to always do the
+right thing, e.g. if the change owner sends a reply, then they are often
+expected to individually select whose turn it is.</p>
+</div>
+<div class="paragraph">
+<p>Note that just uploading a new patchset is not a relevant event for the
+attention set to change.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_interaction">Interaction</h3>
+<div class="paragraph">
+<p>There are three ways to interact with the attention set: The attention icon,
+the hovercard of owner and reviewer chips and the "Reply" dialog.</p>
+</div>
+<div class="paragraph">
+<p><strong>The attention icon</strong> can be used to quickly remove yourself (or someone else)
+from the attention set. Just click the icon, and it will disappear:</p>
+</div>
+<div class="imageblock" style="text-align: center">
+<div class="content">
+<img src="images/user-attention-set-icon-click.png" alt="attention set icon with tooltip">
+</div>
+</div>
+<div class="paragraph">
+<p><strong>The hovercard</strong> (on both the Dashboard and Change page) contains information
+about whether, why and when a user was added to the attention set. It also
+contains an action for adding/removing the user to/from the attention set.</p>
+</div>
+<div class="imageblock" style="text-align: center">
+<div class="content">
+<img src="images/user-attention-set-hovercard.png" alt="user hovercard with info and action">
+</div>
+</div>
+<div class="paragraph">
+<p><strong>The reply dialog</strong> contains a section for controlling to whom the turn should be
+passed.</p>
+</div>
+<div class="imageblock" style="text-align: center">
+<div class="content">
+<img src="images/user-attention-set-reply-modify.png" alt="reply dialog section for modifying">
+</div>
+</div>
+<div class="paragraph">
+<p>If you click "MODIFY", then the section will
+expand and you can select and de-select users by clicking on their chips.
+Whatever you select here will be the new state of the attention set for this
+change. As a change owner make sure to remove reviewers that you don&#8217;t expect to
+take action.</p>
+</div>
+<div class="imageblock" style="text-align: center">
+<div class="content">
+<img src="images/user-attention-set-reply-select.png" alt="reply dialog section for selecting users">
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="bots">Bots</h3>
+<div class="paragraph">
+<p>The attention set is meant for human reviews only. Triggering bots and reacting
+to their results is a different workflow and not in scope of the attenion set.
+Thus members of the "Service Users" group will never be added to the
+attention set. And replies by such users will only add the change owner (and
+uploader) to the attention set, if it comes along with a negative vote.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_dashboard">Dashboard</h3>
+<div class="paragraph">
+<p>The default <strong>dashboard</strong> contains a new section at the top called "Your Turn". It
+lists all changes where the logged-in user is in the attention set. When you are
+a reviewer, the change is highlighted and is shown at the top of the section.
+The "Waiting" column indicates how long the owner has already been waiting for
+you to act.</p>
+</div>
+<div class="imageblock" style="text-align: center">
+<div class="content">
+<img src="images/user-attention-set-dashboard.png" alt="dashboard with Your Turn section">
+</div>
+</div>
+<div class="paragraph">
+<p>As an active developer, one of your daily goals will be to iterate over this
+list and clear it.</p>
+</div>
+<div class="imageblock" style="text-align: center">
+<div class="content">
+<img src="images/user-attention-set-dashboard-empty.png" alt="dashboard with empty Your Turn section">
+</div>
+</div>
+<div class="paragraph">
+<p>Note that you can also navigate to other users' dashboards to check their
+"Your Turn" section.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_emails">Emails</h3>
+<div class="paragraph">
+<p>Every email begins with <code>Attention is currently required from: &#8230;&#8203;</code>, so you can
+identify at a glance whether you are expected to act.</p>
+</div>
+<div class="paragraph">
+<p>You can even change your email notification preferences in the user settings to
+only receive emails when you are in the attention set of a change:</p>
+</div>
+<div class="imageblock" style="text-align: center">
+<div class="content">
+<img src="images/user-attention-set-user-prefs.png" alt="user preference for email notifications">
+</div>
+</div>
+<div class="paragraph">
+<p>If you prefer setting up customized filters in your mail client, then you can
+make use of the <code>Gerrit-Attention:</code> footer lines that are added for every user
+in the attention set, e.g.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Gerrit-Attention: Marian Harbach &lt;mharbach@google.com&gt;</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_assignee">Assignee</h3>
+<div class="paragraph">
+<p>While the "Assignee" feature can still be used together with the attention set,
+we do not recommend doing so. Using both features is likely confusing. The
+distinct feature of the "Assignee" compared to the attention set is that only
+one user can be the assignee at the same time. So the assignee can be used to
+single out one person or escalate, if there are multiple reviewers. Since
+<strong>every</strong> reviewer in the attention set is expected to take action, singling out
+is not likely to be important and also still achievable with the attention set.
+Otherwise "Assignee" and "Attention Set" are very much overlapping, so we
+recommend to only use one of them.</p>
+</div>
+<div class="paragraph">
+<p>If you don&#8217;t expect action from reviewers, then consider adding them to CC
+instead.</p>
+</div>
+<div class="paragraph">
+<p>The "Assignee" feature can be turned on/off with the
+<a href="config-gerrit.html#change.enableAssignee">enableAssignee</a> config option.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_bold_changes_mark_reviewed">Bold Changes / Mark Reviewed</h3>
+<div class="paragraph">
+<p>Before the attention set feature, changes were bolded in the dashboard when
+<strong>something</strong> happened and you could explicitly "mark a change reviewed" on the
+change page. This former way of keeping track of what you should look at has
+been replaced by the attention set.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_for_gerrit_admins">For Gerrit Admins</h3>
+<div class="paragraph">
+<p>The Attention Set has been available since the 3.3 release (late 2020). It
+is enabled by default, but you can disable it by setting
+<a href="config-gerrit.html#change.enableAttentionSet">enableAttentionSet</a> to false.</p>
+</div>
+<div class="paragraph">
+<p>As part of Gerrit 3.3 upgrade, the user group "Non-Interactive Users" is
+renamed "Service Users". For a new installation, the group is automatically
+created upon initialization.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_important_note_for_all_host_owners_project_owners_and_bot_owners">Important note for all host owners, project owners, and bot owners</h3>
+<div class="paragraph">
+<p>If you are a host/project owner, please make sure all bots that run against your
+host/project are part of the <a href="access-control.html#service_users">Service Users</a> group.</p>
+</div>
+<div class="paragraph">
+<p>If you are a bot owner, please make sure your bot is part of the "Service Users"
+group on all hosts it runs on.</p>
+</div>
+<div class="paragraph">
+<p>To add users to the "Service Users" group, first ensure that the group exists on
+your host. If it doesn&#8217;t, create it. The name must exactly be "Service Users".</p>
+</div>
+<div class="paragraph">
+<p>To create a group, use the Gerrit UI; BROWSE &#8594; Groups &#8594; CREATE NEW.</p>
+</div>
+<div class="paragraph">
+<p>Then, add the bots as members in this group. Alternatively, add an existing
+group that has multiple bots as a subgroup of "Service Users".</p>
+</div>
+<div class="paragraph">
+<p>To add members or subgroups, use the Gerrit UI; BROWSE &#8594; Groups &#8594;
+search for "Service Users" &#8594; Members.</p>
+</div>
+<hr style="
+  height: 2px;
+  color: silver;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+">
+<div class="paragraph">
+<p>Part of <a href="index.html">Gerrit Code Review</a></p>
+</div>
+<div style="
+  position:fixed;
+  top:0px;
+  right:0px;
+  text-align:
+  right;
+  padding-top:2px;
+  padding-right:0.5em;
+  padding-bottom:2px;">
+<input size="40"
+  style="line-height: 0.75em;font-size: 0.75em;"
+  id="docSearch"
+  type="text">
+<button style="
+  background:none!important;
+  border:none;
+  padding:0!important;
+  vertical-align:bottom;
+  font-family:'Open Sans','DejaVu Sans',sans-serif;
+  font-size:0.8em;
+  color:#1d4b8f;
+  text-decoration:none;"
+  type="button"
+  id="searchBox">
+  Search
+</button>
+
+<script type="text/javascript">
+var f = function() {
+  window.location = '../#/Documentation/q/' +
+    encodeURIComponent(document.getElementById("docSearch").value);
+}
+document.getElementById("searchBox").onclick = f;
+document.getElementById("docSearch").onkeypress = function(e) {
+  if (13 == (e.keyCode ? e.keyCode : e.which)) {
+    f();
+  }
+}
+</script>
+
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

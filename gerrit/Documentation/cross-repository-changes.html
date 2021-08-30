@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Gerrit Code Review - Submitting Changes Across Repositories by using Topics</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Gerrit Code Review - Submitting Changes Across Repositories by using Topics</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_goal">Goal</a></li>
+<li><a href="#_when_to_use">When to Use</a></li>
+<li><a href="#_what_is_a_topic">What is a Topic?</a>
+<ul class="sectlevel2">
+<li><a href="#_topic_submission_behavior">Topic submission behavior</a></li>
+<li><a href="#example_submission">Example Submission</a></li>
+</ul>
+</li>
+<li><a href="#_submitting_changes_using_topics">Submitting Changes Using Topics</a>
+<ul class="sectlevel2">
+<li><a href="#_1_associate_the_changes_to_a_topic">1. <strong>Associate the changes to a topic</strong></a></li>
+<li><a href="#_2_go_through_the_normal_code_review_process">2. <strong>Go through the normal code review process</strong></a></li>
+<li><a href="#_3_submit_the_change">3. <strong>Submit the change</strong></a></li>
+</ul>
+</li>
+<li><a href="#reverting">Reverting a Submission</a></li>
+<li><a href="#_cherry_picking_a_topic">Cherry-Picking a Topic</a></li>
+<li><a href="#_searching_for_topics">Searching for Topics</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_goal">Goal</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This document describes how to propose and submit code changes across multiple
+Git repositories together in Gerrit.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_when_to_use">When to Use</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Oftentimes, especially for larger code bases, code is split across multiple
+repositories. The Android operating system’s code base, for example, consists of
+<a href="https://android.googlesource.com/">hundreds</a> of separate repositories. When
+making a change, you might make code changes that span multiple repositories.
+For example, one repository could define an API which is used in another
+repository. Submitting these changes across these repositories separately could
+cause the build to break for other developers.</p>
+</div>
+<div class="paragraph">
+<p>Gerrit provides a mechanism called <a href="intro-user.html#topics">Topics</a> to submit
+changes together to prevent this problem.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 100%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NOTE: Usage of topics to submit multiple changes together requires your
+Gerrit host having
+<a href="config-gerrit.html#change.submitWholeTopic">config.submitWholeTopic</a> set to
+true. Ask your Gerrit administrator if you&#8217;re not sure if this is enabled for
+your Gerrit instance.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_what_is_a_topic">What is a Topic?</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>A topic is a string that can be associated with a change.</p>
+</li>
+<li>
+<p>Multiple changes can use that topic to be submitted at the same time (assuming
+approvals, etc.).</p>
+</li>
+<li>
+<p>Submitting a change with a topic causes all of the changes in the topic <strong>to be
+submitted together</strong></p>
+<div class="ulist">
+<ul>
+<li>
+<p>Topics that span only a single repository are guaranteed to be submitted
+together</p>
+</li>
+<li>
+<p>Topics that span multiple repositories simply triggers submission of all
+changes. No other guarantees are given. Submission of all changes could
+fail, so you could get a partial topic submission. This is very rare but
+can happen in some of the following situations:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Storage layer failures. This is unlikely in single-master installation and
+more likely with multi-master setups.</p>
+</li>
+<li>
+<p>Race conditions. Concurrent submits to the same repository or concurrent
+updates of the pending changes.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Here are a few intricacies you should be aware of:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Topics can only be used for changes within a single Gerrit instance. There is
+no builtin support for synchronizing with other Gerrit or Git hosting sites.</p>
+</li>
+<li>
+<p>A topic can be any string, and they are not namespaced in a Gerrit instance;
+there is a chance for collisions and inadvertently grouping changes together
+that weren’t meant to be grouped. This could even happen with changes you can’t
+see, leading to more confusion e.g. (change not submittable, but you can&#8217;t see
+why it&#8217;s not submittable.). We suggest prefixing topic strings with the author’s
+username e.g. “username-” to help avoid this.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>You can view the assigned topic from the change screen in Gerrit:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/cross-repository-changes-topic.png" alt="cross repository changes topic" width="600">
+</div>
+</div>
+<div class="sect2">
+<h3 id="_topic_submission_behavior">Topic submission behavior</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Submitting a topic will submit any dependent changes as well. For example,
+an unsubmitted parent change will also be submitted, even if it isn’t in the
+original topic.</p>
+</li>
+<li>
+<p>A change with a topic is submittable when <strong>all changes</strong> in the topic are
+submittable and <strong>all of the changes’ dependent changes</strong> (and their topics!)
+are also submittable.</p>
+</li>
+<li>
+<p>Gerrit calls the totality of these changes "Submitted Together", and they can
+be found with the
+  <a href="rest-api-changes.html#submitted-together">Submitted Together endpoint</a> or
+  on the change screen.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/cross-repository-changes-submitted-together.png" alt="cross repository changes submitted together" width="600">
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A submission creates a unique submission ID
+(<a href="rest-api-changes.html#change-info"><code>submission_id</code></a>), which can be
+used in Gerrit&#8217;s search bar to find all the submitted changes for the
+submission. This ID is relevant when <a href="#reverting">reverting a submission</a>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To better underestand this behavior, consider this following example.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="example_submission">Example Submission</h3>
+<div class="imageblock">
+<div class="content">
+<img src="images/cross-repository-changes-example.png" alt="cross repository changes example" width="600">
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Two repositories: A and B</p>
+</li>
+<li>
+<p>Two changes in A: A1 and A2, where A2 is the child change.</p>
+</li>
+<li>
+<p>Two changes in B: B1 and B2, where B2 is the child change.</p>
+</li>
+<li>
+<p>Topic X contains change A1 and B1</p>
+</li>
+<li>
+<p>Topic Y contains change A2 and B2</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Submission of A2 will submit all four of these changes because submission of A2
+submits all of topic Y as well as all dependent changes and their topics i.e. A1
+and topic X.</p>
+</div>
+<div class="paragraph">
+<p>Because of this, any submission is blocked until all four of these changes are
+submittable.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 100%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Important point: B1 can unexpectedly block the submission of A2!
+This kind of situation is hard to immediately grok: B1 isn&#8217;t in the topic you&#8217;re
+trying to submit, and it isn&#8217;t a depnedent change of A2. If your topic isn’t
+submittable and you can’t figure out why, this might be a reason.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_submitting_changes_using_topics">Submitting Changes Using Topics</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_1_associate_the_changes_to_a_topic">1. <strong>Associate the changes to a topic</strong></h3>
+<div class="paragraph">
+<p>The first step is to associate all the changes you want to be submitted together
+with the same topic. There are multiple ways to associate changes with a topic.</p>
+</div>
+<div class="sect3">
+<h4 id="_from_the_command_line">From the command line</h4>
+<div class="paragraph">
+<p>You can set the topic name when uploading to Gerrit</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>$ git push origin HEAD:refs/heads/master -o topic=[YOUR_TOPIC_NAME]</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>OR</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>$ git push origin HEAD:refs/for/master%topic=[YOUR_TOPIC_NAME]</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you’re using <a href="https://source.android.com/setup/develop">repo</a> to upload a
+change to Android Gerrit, you can associate a topic via:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>$ repo upload -o topic=[YOUR_TOPIC_NAME]</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you’re using
+<a href="https://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools.html">depot_tools</a>
+to upload a change to Chromium Gerrit, you can associate a topic via:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>$ git cl upload --topic=[YOUR_TOPIC_NAME]</pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_from_the_ui">From the UI</h4>
+<div class="paragraph">
+<p>If the change has already been created, you can add a topic from the change page
+by clicking ADD TOPIC, found on the left side of the top of the Change screen.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/cross-repository-changes-add-topic.png" alt="cross repository changes add topic" width="600">
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_2_go_through_the_normal_code_review_process">2. <strong>Go through the normal code review process</strong></h3>
+<div class="paragraph">
+<p>Each change still goes through the normal code review process where reviewers
+vote on each change individually. The changes won’t be able to be submitted
+until <strong>all</strong> changes in the topic are submittable.</p>
+</div>
+<div class="paragraph">
+<p>The requirements for submittability vary based on rules set by your repository
+administrators; often this includes being approved by all requisite parties,
+passing presubmit testing, and being able to merge cleanly (without conflicts)
+into the target branch.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_3_submit_the_change">3. <strong>Submit the change</strong></h3>
+<div class="paragraph">
+<p>When all changes in the topic are submittable, you’ll see <strong>SUBMIT WHOLE TOPIC</strong>
+at the top of the <em>Change screen</em>. Clicking it will submit all the changes in
+"Submitted Together."</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/cross-repository-changes-submit-topic.png" alt="cross repository changes submit topic" width="600">
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="reverting">Reverting a Submission</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After a topic is submitted, you can revert all or one of the changes by clicking
+the <strong>REVERT</strong> button on any change.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/cross-repository-changes-revert-topic.png" alt="cross repository changes revert topic" width="600">
+</div>
+</div>
+<div class="paragraph">
+<p>This will give you the option to either revert just the change in question or
+the entire topic:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/cross-repository-changes-revert-topic-options.png" alt="cross repository changes revert topic options" width="600">
+</div>
+</div>
+<div class="paragraph">
+<p>Reverting the entire submission creates revert commits for each change and
+automatically associates them together under the same topic. To submit
+these changes, go through the normal review process.</p>
+</div>
+<div class="paragraph">
+<p>When submitting a topic, dependent changes and their topics are submitted as
+well. The RevertSubmission creates reverts for all the changes that were
+submitted at that time. When reverting the submission described in
+<a href="#example_submission">Example Submission</a>, all 4 of those changes will get
+reverted.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 100%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NOTE: We say “reverting a submission” instead of “reverting a submitted
+  topic” because submissions are defined by submission id, not by the topic
+  string. So even though topics names could be reused, this doesn&#8217;t effect
+  reverting. For example:</p>
+<p class="tableblock">  1. Submission #1 uses topic A</p>
+<p class="tableblock">  2. Later, Submission #2 uses topic A again</p>
+<p class="tableblock">  Reverting submission #2 only reverts the changes in that submission, not all
+  changes included in topic A.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_cherry_picking_a_topic">Cherry-Picking a Topic</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You may want to cherry-pick the changes (i.e. copy the changes) of a topic to
+another branch, perhaps because you have multiple branches that all need to be
+updated with the same change (e.g. you&#8217;re porting a security fix across
+branches). Gerrit provides a mechanism to create these changes.</p>
+</div>
+<div class="paragraph">
+<p>From the overflow menu (3 dot icon) in the top right of the Change Screen,
+select “Cherry pick.” In the screenshot below, we’re showing this on a
+submitted change, but this option is available if the change is pending as
+well.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/cross-repository-changes-cp-menu.png" alt="cross repository changes cp menu" width="600">
+</div>
+</div>
+<div class="paragraph">
+<p>Afterwards, you’ll be presented with a modal where you can “Cherry Pick entire
+topic.”</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/cross-repository-changes-cp-modal.png" alt="cross repository changes cp modal" width="600">
+</div>
+</div>
+<div class="paragraph">
+<p>Enter the branch name that you want to target for these repositories. The
+branch must already exist on all of the repositories. After clicking
+“CHERRY PICK,” Gerrit will create new changes all targeting the entered
+branch in their respective repositories, and these new changes will all be
+associated with a new, uniquely-generated topic name.</p>
+</div>
+<div class="paragraph">
+<p>To submit the cherry-picked changes, go through the normal submission
+process.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 100%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NOTE: You cannot cherry pick two or more changes that all target the same
+ repository from the Gerrit UI at this time; you’ll get an error message saying
+ “changes cannot be of the same repository.” To accomplish this, you’d
+ need to do the cherry-pick locally.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_searching_for_topics">Searching for Topics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In the Gerrit search bar, you can search for changes attached to a specific
+topic using the <code>topic</code> operator e.g. <code>topic:MY_TOPIC_NAME</code>. The <code>intopic</code>
+operator works similary but supports free-text and regular expression search.</p>
+</div>
+<div class="paragraph">
+<p>You can also search for a submission using the <code>submissionid</code> operator. Topic
+submission IDs are "&lt;id&gt;-&lt;topic&gt;" where id is the change number of the change
+that triggered the submission (though this could change in the future). As a
+full example, if the topic name is my-topic and change 12345 was the one that
+triggered submission, you could find it with <code>submissionid:12345-my-topic</code>.</p>
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

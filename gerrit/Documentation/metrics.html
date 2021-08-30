@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Gerrit Code Review - Metrics</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Gerrit Code Review - Metrics</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_metrics">Metrics</a>
+<ul class="sectlevel2">
+<li><a href="#_general">General</a></li>
+<li><a href="#_actions">Actions</a></li>
+<li><a href="#_pushes">Pushes</a></li>
+<li><a href="#_process">Process</a></li>
+<li><a href="#_caches">Caches</a></li>
+<li><a href="#_change">Change</a></li>
+<li><a href="#_comments">Comments</a></li>
+<li><a href="#_http">HTTP</a></li>
+<li><a href="#_query">Query</a></li>
+<li><a href="#_core_queues">Core Queues</a></li>
+<li><a href="#_ssh_sessions">SSH sessions</a></li>
+<li><a href="#_topics">Topics</a></li>
+<li><a href="#_jgit">JGit</a></li>
+<li><a href="#_git">Git</a></li>
+<li><a href="#_batchupdate">BatchUpdate</a></li>
+<li><a href="#_notedb">NoteDb</a></li>
+<li><a href="#_permissions">Permissions</a></li>
+<li><a href="#_reviewer_suggestion">Reviewer Suggestion</a></li>
+<li><a href="#_repo_sequences">Repo Sequences</a></li>
+<li><a href="#_plugin">Plugin</a></li>
+<li><a href="#_group">Group</a></li>
+<li><a href="#_replication_plugin">Replication Plugin</a></li>
+<li><a href="#_license">License</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Metrics about Gerrit&#8217;s internal state can be sent to external monitoring systems
+via plugins. See the <a href="dev-plugins.html#metrics">plugin documentation</a> for
+details of plugin implementations.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_metrics">Metrics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following metrics are reported.</p>
+</div>
+<div class="sect2">
+<h3 id="_general">General</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>build/label</code>: Version of Gerrit server software.</p>
+</li>
+<li>
+<p><code>events</code>: Triggered events.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_actions">Actions</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>action/retry_attempt_count</code>: Number of retry attempts made
+by RetryHelper to execute an action (0 == single attempt, no retry)</p>
+</li>
+<li>
+<p><code>action/retry_timeout_count</code>: Number of action executions of RetryHelper
+that ultimately timed out</p>
+</li>
+<li>
+<p><code>action/auto_retry_count</code>: Number of automatic retries with tracing</p>
+</li>
+<li>
+<p><code>action/failures_on_auto_retry_count</code>: Number of failures on auto retry</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_pushes">Pushes</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>receivecommits/changes</code>: histogram of number of changes processed
+in a single upload, split up by update type (change created/updated,
+change autoclosed).</p>
+</li>
+<li>
+<p><code>receivecommits/latency</code>: latency per change for processing a push,
+split up by update type (create+replace, and autoclose)</p>
+</li>
+<li>
+<p><code>receivecommits/push_latency</code>: total latency for processing a push,
+split up by update type (create+replace, autoclose, normal)</p>
+</li>
+<li>
+<p><code>receivecommits/timeout</code>: number of timeouts during push processing.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_process">Process</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>proc/birth_timestamp</code>: Time at which the Gerrit process started.</p>
+</li>
+<li>
+<p><code>proc/uptime</code>: Uptime of the Gerrit process.</p>
+</li>
+<li>
+<p><code>proc/cpu/num_cores</code>: Number of processors available to the Java virtual machine.</p>
+</li>
+<li>
+<p><code>proc/cpu/usage</code>: CPU time used by the Gerrit process.</p>
+</li>
+<li>
+<p><code>proc/cpu/system_load</code>: System load average for the last minute.</p>
+</li>
+<li>
+<p><code>proc/num_open_fds</code>: Number of open file descriptors.</p>
+</li>
+<li>
+<p><code>proc/jvm/memory/heap_committed</code>: Amount of memory guaranteed for user objects.</p>
+</li>
+<li>
+<p><code>proc/jvm/memory/heap_used</code>: Amount of memory holding user objects.</p>
+</li>
+<li>
+<p><code>proc/jvm/memory/non_heap_committed</code>: Amount of memory guaranteed for classes,
+etc.</p>
+</li>
+<li>
+<p><code>proc/jvm/memory/non_heap_used</code>: Amount of memory holding classes, etc.</p>
+</li>
+<li>
+<p><code>proc/jvm/memory/object_pending_finalization_count</code>: Approximate number of
+objects needing finalization.</p>
+</li>
+<li>
+<p><code>proc/jvm/gc/count</code>: Number of GCs.</p>
+</li>
+<li>
+<p><code>proc/jvm/gc/time</code>: Approximate accumulated GC elapsed time.</p>
+</li>
+<li>
+<p><code>proc/jvm/memory/pool/committed/&lt;pool name&gt;</code>: Committed amount of memory for pool.</p>
+</li>
+<li>
+<p><code>proc/jvm/memory/pool/max/&lt;pool name&gt;</code>: Maximum amount of memory for pool.</p>
+</li>
+<li>
+<p><code>proc/jvm/memory/pool/used/&lt;pool name&gt;</code>: Used amount of memory for pool.</p>
+</li>
+<li>
+<p><code>proc/jvm/thread/num_live</code>: Current live thread count.</p>
+</li>
+<li>
+<p><code>proc/jvm/thread/num_daemon_live</code>: Current live daemon threads count.</p>
+</li>
+<li>
+<p><code>proc/jvm/thread/num_peak_live</code>: Peak live thread count since the Java virtual machine started or peak was reset.</p>
+</li>
+<li>
+<p><code>proc/jvm/thread/num_total_started</code>: Total number of threads created and also started since the Java virtual machine started.</p>
+</li>
+<li>
+<p><code>proc/jvm/thread/num_deadlocked_threads</code>: Number of threads that are deadlocked waiting for object monitors or ownable synchronizers.
+If deadlocks waiting for ownable synchronizers can be monitored depends on the capabilities of the used JVM.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_caches">Caches</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>caches/memory_cached</code>: Memory entries.</p>
+</li>
+<li>
+<p><code>caches/memory_hit_ratio</code>: Memory hit ratio.</p>
+</li>
+<li>
+<p><code>caches/memory_eviction_count</code>: Memory eviction count.</p>
+</li>
+<li>
+<p><code>caches/disk_cached</code>: Disk entries used by persistent cache.</p>
+</li>
+<li>
+<p><code>caches/disk_hit_ratio</code>: Disk hit ratio for persistent cache.</p>
+</li>
+<li>
+<p><code>caches/refresh_count</code>: The number of refreshes per cache with an indicator if a reload was necessary.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Cache disk metrics are expensive to compute on larger installations and are not
+computed by default. They can be enabled via the
+<a href="config.gerrit.html#cache.enableDiskStatMetrics"><code>cache.enableDiskStatMetrics</code></a>
+setting.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_change">Change</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>change/submit_rule_evaluation</code>: Latency for evaluating submit rules on a change.</p>
+</li>
+<li>
+<p><code>change/submit_type_evaluation</code>: Latency for evaluating the submit type on a change.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_comments">Comments</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>ported_comments/as_patchset_level</code>: Total number of comments ported as patchset-level comments.</p>
+</li>
+<li>
+<p><code>ported_comments/as_file_level</code>: Total number of comments ported as file-level comments.</p>
+</li>
+<li>
+<p><code>ported_comments/as_range_comments</code>: Total number of comments having line/range values in the ported patchset.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_http">HTTP</h3>
+<div class="sect3">
+<h4 id="_jetty">Jetty</h4>
+<div class="ulist">
+<ul>
+<li>
+<p><code>http/server/jetty/connections/connections</code>: The current number of open connections</p>
+</li>
+<li>
+<p><code>http/server/jetty/connections/connections_total</code>: The total number of connections opened</p>
+</li>
+<li>
+<p><code>http/server/jetty/connections/connections_duration_max</code>: The max duration of a connection in ms</p>
+</li>
+<li>
+<p><code>http/server/jetty/connections/connections_duration_mean</code>: The mean duration of a connection in ms</p>
+</li>
+<li>
+<p><code>http/server/jetty/connections/connections_duration_stdev</code>: The standard deviation of the duration of a connection in ms</p>
+</li>
+<li>
+<p><code>http/server/jetty/connections/received_messages</code>: The total number of messages received</p>
+</li>
+<li>
+<p><code>http/server/jetty/connections/sent_messages</code>: The total number of messages sent</p>
+</li>
+<li>
+<p><code>http/server/jetty/connections/received_bytes</code>: Total number of bytes received by tracked connections</p>
+</li>
+<li>
+<p><code>http/server/jetty/connections/sent_bytes</code>: Total number of bytes sent by tracked connections"</p>
+</li>
+<li>
+<p><code>http/server/jetty/threadpool/active_threads</code>: Active threads</p>
+</li>
+<li>
+<p><code>http/server/jetty/threadpool/idle_threads</code>: Idle threads</p>
+</li>
+<li>
+<p><code>http/server/jetty/threadpool/reserved_threads</code>: Reserved threads</p>
+</li>
+<li>
+<p><code>http/server/jetty/threadpool/max_pool_size</code>: Maximum thread pool size</p>
+</li>
+<li>
+<p><code>http/server/jetty/threadpool/min_pool_size</code>: Minimum thread pool size</p>
+</li>
+<li>
+<p><code>http/server/jetty/threadpool/pool_size</code>: Current thread pool size</p>
+</li>
+<li>
+<p><code>http/server/jetty/threadpool/queue_size</code>: Queued requests waiting for a thread</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_ldap">LDAP</h4>
+<div class="ulist">
+<ul>
+<li>
+<p><code>ldap/login_latency</code>: Latency of logins.</p>
+</li>
+<li>
+<p><code>ldap/user_search_latency</code>: Latency for searching the user account.</p>
+</li>
+<li>
+<p><code>ldap/group_search_latency</code>: Latency for querying the group memberships of an account.</p>
+</li>
+<li>
+<p><code>ldap/group_expansion_latency</code>: Latency for expanding nested groups.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_rest_api">REST API</h4>
+<div class="ulist">
+<ul>
+<li>
+<p><code>http/server/error_count</code>: Rate of REST API error responses.</p>
+</li>
+<li>
+<p><code>http/server/success_count</code>: Rate of REST API success responses.</p>
+</li>
+<li>
+<p><code>http/server/rest_api/count</code>: Rate of REST API calls by view.</p>
+</li>
+<li>
+<p><code>http/server/rest_api/change_id_type</code>: Rate of REST API calls by change ID type.</p>
+</li>
+<li>
+<p><code>http/server/rest_api/error_count</code>: Rate of REST API calls by view.</p>
+</li>
+<li>
+<p><code>http/server/rest_api/server_latency</code>: REST API call latency by view.</p>
+</li>
+<li>
+<p><code>http/server/rest_api/response_bytes</code>: Size of REST API response on network
+(may be gzip compressed) by view.</p>
+</li>
+<li>
+<p><code>http/server/rest_api/change_json/to_change_info_latency</code>: Latency for
+toChangeInfo invocations in ChangeJson.</p>
+</li>
+<li>
+<p><code>http/server/rest_api/change_json/to_change_infos_latency</code>: Latency for
+toChangeInfos invocations in ChangeJson.</p>
+</li>
+<li>
+<p><code>http/server/rest_api/change_json/format_query_results_latency</code>: Latency for
+formatQueryResults invocations in ChangeJson.</p>
+</li>
+<li>
+<p><code>http/server/rest_api/ui_actions/latency</code>: Latency for RestView#getDescription calls.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_query">Query</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>query/query_latency</code>: Successful query latency, accumulated over the life
+of the process.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_core_queues">Core Queues</h3>
+<div class="paragraph">
+<p>The following queues support metrics:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>default <code>WorkQueue</code></p>
+</li>
+<li>
+<p>index batch</p>
+</li>
+<li>
+<p>index interactive</p>
+</li>
+<li>
+<p>receive commits</p>
+</li>
+<li>
+<p>send email</p>
+</li>
+<li>
+<p>ssh batch worker</p>
+</li>
+<li>
+<p>ssh command start</p>
+</li>
+<li>
+<p>ssh interactive worker</p>
+</li>
+<li>
+<p>ssh stream worker</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Each queue provides the following metrics:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>queue/&lt;queue_name&gt;/pool_size</code>: Current number of threads in the pool</p>
+</li>
+<li>
+<p><code>queue/&lt;queue_name&gt;/max_pool_size</code>: Maximum allowed number of threads in the pool</p>
+</li>
+<li>
+<p><code>queue/&lt;queue_name&gt;/active_threads</code>: Number of threads that are actively executing tasks</p>
+</li>
+<li>
+<p><code>queue/&lt;queue_name&gt;/scheduled_tasks</code>: Number of scheduled tasks in the queue</p>
+</li>
+<li>
+<p><code>queue/&lt;queue_name&gt;/total_scheduled_tasks_count</code>: Total number of tasks that have been scheduled</p>
+</li>
+<li>
+<p><code>queue/&lt;queue_name&gt;/total_completed_tasks_count</code>: Total number of tasks that have completed execution</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ssh_sessions">SSH sessions</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>sshd/sessions/connected</code>: Number of currently connected SSH sessions.</p>
+</li>
+<li>
+<p><code>sshd/sessions/created</code>: Rate of new SSH sessions.</p>
+</li>
+<li>
+<p><code>sshd/sessions/authentication_failures</code>: Rate of SSH authentication failures.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_topics">Topics</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>topic/cross_project_submit</code>: number of cross-project topic submissions.</p>
+</li>
+<li>
+<p><code>topic/cross_project_submit_completed</code>: number of cross-project
+topic submissions that concluded successfully.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_jgit">JGit</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>jgit/block_cache/cache_used</code> : Bytes of memory retained in JGit block cache.</p>
+</li>
+<li>
+<p><code>jgit/block_cache/open_files</code> : File handles held open by JGit block cache.</p>
+</li>
+<li>
+<p><code>avg_load_time</code> : Average time to load a cache entry for JGit block cache.</p>
+</li>
+<li>
+<p><code>total_load_time</code> : Total time to load cache entries for JGit block cache.</p>
+</li>
+<li>
+<p><code>eviction_count</code> : Cache evictions for JGit block cache.</p>
+</li>
+<li>
+<p><code>eviction_ratio</code> : Cache eviction ratio for JGit block cache.</p>
+</li>
+<li>
+<p><code>hit_count</code> : Cache hits for JGit block cache.</p>
+</li>
+<li>
+<p><code>hit_ratio</code> : Cache hit ratio for JGit block cache.</p>
+</li>
+<li>
+<p><code>load_failure_count</code> : Failed cache loads for JGit block cache.</p>
+</li>
+<li>
+<p><code>load_failure_ratio</code> : Failed cache load ratio for JGit block cache.</p>
+</li>
+<li>
+<p><code>load_success_count</code> : Successful cache loads for JGit block cache.</p>
+</li>
+<li>
+<p><code>miss_count</code> : Cache misses for JGit block cache.</p>
+</li>
+<li>
+<p><code>miss_ratio</code> : Cache miss ratio for JGit block cache.</p>
+</li>
+<li>
+<p><code>cache_used_per_repository</code> : Bytes of memory retained per repository for the top N repositories
+having most data in the cache. The number N of reported repositories is limited to 1000.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_git">Git</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>git/upload-pack/request_count</code>: Total number of git-upload-pack requests.</p>
+</li>
+<li>
+<p><code>git/upload-pack/phase_counting</code>: Time spent in the 'Counting&#8230;&#8203;' phase.</p>
+</li>
+<li>
+<p><code>git/upload-pack/phase_compressing</code>: Time spent in the 'Compressing&#8230;&#8203;' phase.</p>
+</li>
+<li>
+<p><code>git/upload-pack/phase_writing</code>: Time spent transferring bytes to client.</p>
+</li>
+<li>
+<p><code>git/upload-pack/pack_bytes</code>: Distribution of sizes of packs sent to clients.</p>
+</li>
+<li>
+<p><code>git/auto-merge/num_operations</code>: Number of auto merge operations and context.</p>
+</li>
+<li>
+<p><code>git/auto-merge/latency</code>: Latency of auto merge operations and context.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_batchupdate">BatchUpdate</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>batch_update/execute_change_ops</code>: BatchUpdate change update latency,
+excluding reindexing</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_notedb">NoteDb</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>notedb/update_latency</code>: NoteDb update latency for changes.</p>
+</li>
+<li>
+<p><code>notedb/stage_update_latency</code>: Latency for staging change updates to NoteDb.</p>
+</li>
+<li>
+<p><code>notedb/read_latency</code>: NoteDb read latency for changes.</p>
+</li>
+<li>
+<p><code>notedb/parse_latency</code>: NoteDb parse latency for changes.</p>
+</li>
+<li>
+<p><code>notedb/external_id_cache_load_count</code>: Total number of times the external ID
+cache loader was called.</p>
+</li>
+<li>
+<p><code>notedb/external_id_partial_read_latency</code>: Latency for generating a new external ID
+cache state from a prior state.</p>
+</li>
+<li>
+<p><code>notedb/external_id_update_count</code>: Total number of external ID updates.</p>
+</li>
+<li>
+<p><code>notedb/read_all_external_ids_latency</code>: Latency for reading all
+external ID&#8217;s from NoteDb.</p>
+</li>
+<li>
+<p><code>notedb/read_single_account_config_latency</code>: Latency for reading a single
+account config from NoteDb.</p>
+</li>
+<li>
+<p><code>notedb/read_single_external_id_latency</code>: Latency for reading a single
+external ID from NoteDb.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_permissions">Permissions</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>permissions/permission_collection/filter_latency</code>: Latency to filter access sections
+by user and ref.</p>
+</li>
+<li>
+<p><code>permissions/ref_filter/full_filter_count</code>: Rate of full ref filter operations</p>
+</li>
+<li>
+<p><code>permissions/ref_filter/skip_filter_count</code>: Rate of ref filter operations where
+we skip full evaluation because the user can read all refs</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_reviewer_suggestion">Reviewer Suggestion</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>reviewer_suggestion/query_accounts</code>: Latency for querying accounts for
+reviewer suggestion.</p>
+</li>
+<li>
+<p><code>reviewer_suggestion/recommend_accounts</code>: Latency for recommending accounts
+for reviewer suggestion.</p>
+</li>
+<li>
+<p><code>reviewer_suggestion/load_accounts</code>: Latency for loading accounts for
+reviewer suggestion.</p>
+</li>
+<li>
+<p><code>reviewer_suggestion/query_groups</code>: Latency for querying groups for reviewer
+suggestion.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_repo_sequences">Repo Sequences</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>sequence/next_id_latency</code>: Latency of requesting IDs from repo sequences.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_plugin">Plugin</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>plugin/latency</code>: Latency for plugin invocation.</p>
+</li>
+<li>
+<p><code>plugin/error_count</code>: Number of plugin errors.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_group">Group</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>group/guess_relevant_groups_latency</code>: Latency for guessing relevant groups.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_replication_plugin">Replication Plugin</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>plugins/replication/replication_latency</code>: Time spent pushing to remote
+destination.</p>
+</li>
+<li>
+<p><code>plugins/replication/replication_delay</code>: Time spent waiting before pushing to
+remote destination.</p>
+</li>
+<li>
+<p><code>plugins/replication/replication_retries</code>: Number of retries when pushing to
+remote destination.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_license">License</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>license/cla_check_count</code>: Total number of CLA check requests.</p>
+</li>
+</ul>
+</div>
+<hr style="
+  height: 2px;
+  color: silver;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+">
+<div class="paragraph">
+<p>Part of <a href="index.html">Gerrit Code Review</a></p>
+</div>
+<div style="
+  position:fixed;
+  top:0px;
+  right:0px;
+  text-align:
+  right;
+  padding-top:2px;
+  padding-right:0.5em;
+  padding-bottom:2px;">
+<input size="40"
+  style="line-height: 0.75em;font-size: 0.75em;"
+  id="docSearch"
+  type="text">
+<button style="
+  background:none!important;
+  border:none;
+  padding:0!important;
+  vertical-align:bottom;
+  font-family:'Open Sans','DejaVu Sans',sans-serif;
+  font-size:0.8em;
+  color:#1d4b8f;
+  text-decoration:none;"
+  type="button"
+  id="searchBox">
+  Search
+</button>
+
+<script type="text/javascript">
+var f = function() {
+  window.location = '../#/Documentation/q/' +
+    encodeURIComponent(document.getElementById("docSearch").value);
+}
+document.getElementById("searchBox").onclick = f;
+document.getElementById("docSearch").onkeypress = function(e) {
+  if (13 == (e.keyCode ? e.keyCode : e.which)) {
+    f();
+  }
+}
+</script>
+
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

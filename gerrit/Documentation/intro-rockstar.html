@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Use Gerrit to Be a Rockstar Programmer</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Use Gerrit to Be a Rockstar Programmer</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_overview">Overview</a></li>
+<li><a href="#amending">Amending commits</a></li>
+<li><a href="#review">Code review</a></li>
+<li><a href="#web">Web-based code review</a></li>
+<li><a href="#magic">Gerrit’s magic</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_overview">Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The term <em>rockstar</em> is often used to describe those talented programmers who
+seem to work faster and better than everyone else, much like a composer who
+seems to effortlessly churn out fantastic music. However, just as the
+spontaneity of masterful music is a fantasy, so is the development of
+exceptional code.</p>
+</div>
+<div class="paragraph">
+<p>The process of composing and then recording music is painstaking — the artist
+records portions of a composition over and over, changing each take until one
+song is completed by combining those many takes into a cohesive whole. The end
+result is the recording of the best performance of the best version of the
+song.</p>
+</div>
+<div class="paragraph">
+<p>Consider Queen’s six-minute long Bohemian Rhapsody, which took three weeks to
+record. Some segments were overdubbed 180 times!</p>
+</div>
+<div class="paragraph">
+<p>Software engineering is much the same. Changes that seem logical and
+straightforward in retrospect actually required many revisions and many hours
+of work before they were ready to be merged into a code base. A single
+conceptual code change (<em>fix bug 123</em>) often requires numerous iterations
+before it can be finalized. Programmers typically:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Fix compilation errors</p>
+</li>
+<li>
+<p>Factor out a method, to avoid duplicate code</p>
+</li>
+<li>
+<p>Use a better algorithm, to make it faster</p>
+</li>
+<li>
+<p>Handle error conditions, to make it more robust</p>
+</li>
+<li>
+<p>Add tests, to prevent a bug from regressing</p>
+</li>
+<li>
+<p>Adapt tests, to reflect changed behavior</p>
+</li>
+<li>
+<p>Polish code, to make it easier to read</p>
+</li>
+<li>
+<p>Improve the commit message, to explain why a change was made</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In fact, first drafts of code changes are best kept out of project history. Not
+just because rockstar programmers want to hide sloppy first attempts at making
+something work. It&#8217;s more that keeping intermediate states hampers effective
+use of version control. Git works best when one commit corresponds to one
+functional change, as is required for:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>git revert</p>
+</li>
+<li>
+<p>git cherry-pick</p>
+</li>
+<li>
+<p><a href="https://www.kernel.org/pub/software/scm/git/docs/git-bisect-lk2009.html" class="external" target="_blank" rel="noopener">git bisect</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="amending">Amending commits</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Git provides a mechanism to continually update a commit until it’s perfect: use
+<code>git commit --amend</code> to remake (re-record) a code change. After you update a
+commit in this way, your branch then points to the new commit. However, the
+older (imperfect) revision is not lost. It can be found via the <code>git reflog</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="review">Code review</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>At least two well-known open source projects insist on these practices:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://git-scm.com/" class="external" target="_blank" rel="noopener">Git</a></p>
+</li>
+<li>
+<p><a href="http://www.kernel.org/category/about.html" class="external" target="_blank" rel="noopener">Linux Kernel</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>However, contributors to these projects don’t refine and polish their changes
+in private until they’re perfect. Instead, polishing code is part of a review
+process — the contributor offers their change to the project for other
+developers to evaluate and critique. This process is called <em>code review</em> and
+results in numerous benefits:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Code reviews mean that every change effectively has shared authorship</p>
+</li>
+<li>
+<p>Developers share knowledge in two directions: Reviewers learn from the patch
+author how the new code they will have to maintain works, and the patch
+author learns from reviewers about best practices used in the project.</p>
+</li>
+<li>
+<p>Code review encourages more people to read the code contained in a given
+change. As a result, there are more opportunities to find bugs and suggest
+improvements.</p>
+</li>
+<li>
+<p>The more people who read the code, the more bugs can be identified. Since
+code review occurs before code is submitted, bugs are squashed during the
+earliest stage of the software development lifecycle.</p>
+</li>
+<li>
+<p>The review process provides a mechanism to enforce team and company policies.
+For example, <em>all tests shall pass on all platforms</em> or <em>at least two people
+shall sign off on code in production</em>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Many successful software companies, including Google, use code review as a
+standard, integral stage in the software development process.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="web">Web-based code review</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To review work, the Git and Linux Kernel projects send patches via email.</p>
+</div>
+<div class="paragraph">
+<p>Code Review (Gerrit) adds a modern web interface to this workflow. Rather than
+send patches and comments via email, Gerrit users push commits to Gerrit where
+diffs are displayed on a web page. Reviewers can post comments directly on the
+diff. If a change must be reworked, users can push a new, amended revision of
+the same change. Reviewers can then check if the new revision addresses the
+original concerns. If not, the process is repeated.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="magic">Gerrit’s magic</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When you push a change to Gerrit, how does Gerrit detect that the commit amends
+a previous change? Gerrit can’t use the SHA-1, since that value changes when
+<code>git commit --amend</code> is called. Fortunately, upon amending a commit, the commit
+message is retained by default.</p>
+</div>
+<div class="paragraph">
+<p>This is where Gerrit&#8217;s solution lies: Gerrit identifies a conceptual change
+with a footer in the commit message. Each commit message footer contains a
+Change-Id message hook, which uniquely identifies a change across all its
+drafts. For example:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>`Change-Id: I9e29f5469142cc7fce9e90b0b09f5d2186ff0990`</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Thus, if the Change-Id remains the same as commits are amended, Gerrit detects
+that each new version refers to the same conceptual change. The Gerrit web
+interface groups versions so that reviewers can see how your change evolves
+during the code review.</p>
+</div>
+<div class="paragraph">
+<p>To Gerrit, the identifier can be random.</p>
+</div>
+<div class="paragraph">
+<p>Gerrit provides a client-side <a href="cmd-hook-commit-msg.html">message hook</a> to
+automatically add to commit messages when necessary.</p>
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

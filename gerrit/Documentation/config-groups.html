@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Gerrit Code Review - Groups</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Gerrit Code Review - Groups</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_overview">Overview</a></li>
+<li><a href="#_storage_format">Storage format</a></li>
+<li><a href="#_visibility">Visibility</a></li>
+<li><a href="#_pushing_to_group_refs">Pushing to group refs</a></li>
+<li><a href="#_replication">Replication</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_overview">Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In Gerrit, we assign permissions to groups of accounts. These groups
+can be provided by an external system such as LDAP, but Gerrit also
+has a group system built-in ("internal groups")</p>
+</div>
+<div class="paragraph">
+<p>Starting from 2.16, these internal groups are fully stored in
+<a href="note-db.html">NoteDb</a>.</p>
+</div>
+<div class="paragraph">
+<p>A group is characterized by the following information:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>list of members (accounts)</p>
+</li>
+<li>
+<p>list of subgroups</p>
+</li>
+<li>
+<p>properties</p>
+<div class="ulist">
+<ul>
+<li>
+<p>visibleToAll</p>
+</li>
+<li>
+<p>group owner</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Groups are keyed by the following unique identifiers:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>GroupID, the former database key (a sequential number)</p>
+</li>
+<li>
+<p>UUID, an opaque identifier. Internal groups use a 40 byte hex string
+as UUID</p>
+</li>
+<li>
+<p>Name: Gerrit enforces that group names are unique</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_storage_format">Storage format</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Group data is stored in the
+<a href="config-accounts.html#all-users"><code>All-Users</code> repository</a>. For each
+group, there is a ref, stored as a sharded UUID, e.g.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  refs/groups/ef/deafbeefdeafbeefdeafbeefdeafbeefdeafbeef</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The ref points to commits holding files. The files are</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>members</code>, holding numeric account IDs of members, one per line</p>
+</li>
+<li>
+<p><code>subgroups</code>, holding group UUIDs of subgroups, one per line</p>
+</li>
+<li>
+<p><code>group.config</code>, holding further configuration.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The <code>group.config</code> file follows the following format</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>[group]
+  name = &lt;name of the group&gt;
+  id = 42
+  visibleToAll = false
+  description = &lt;description of the group&gt;
+  groupOwnerUuid = &lt;UUID of the owner group&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Gerrit updates the ref for a group based on REST API calls, and the
+commit log effectively forms an audit log which shows how group
+membership evolved over time.</p>
+</div>
+<div class="paragraph">
+<p>To ensure uniqueness of the name, a separate ref
+<code>refs/meta/group-names</code> contains a notemap, ie. a map represented as a
+branch with a flat list of files.</p>
+</div>
+<div class="paragraph">
+<p>The format of this map is as follows:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>keys are the normal SHA-1 of the group name</p>
+</li>
+<li>
+<p>values are blobs that look like</p>
+<div class="listingblock">
+<div class="content">
+<pre>[group]
+  name = &lt;name of the group&gt;
+  uuid = &lt;hex UUID identifier of the group&gt;</pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To ensure uniqueness of the sequential ID, the ID for each new group
+is taken from the sequence counter under <code>refs/sequences/groups</code>,
+which works analogously to the ones for accounts and changes.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_visibility">Visibility</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Group ownership together with <code>visibleToAll</code> determines visibility of
+the groups in the REST API.</p>
+</div>
+<div class="paragraph">
+<p>Fetching a group ref is permitted to the group&#8217;s owners that also have
+READ permissions on the ref. For users that are not owners, the
+permissions on the ref are ignored. In addition, anyone with the
+<a href="access-control.html#capability_accessDatabase">Access Database</a>
+capability can read all group refs. The <code>refs/meta/group-names</code> ref is
+visible only to users with the
+<a href="access-control.html#capability_accessDatabase">Access Database</a>
+capability.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_pushing_to_group_refs">Pushing to group refs</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Validation on push for changes to the group ref is not implemented, so
+pushes are rejected. Pushes that bypass Gerrit should be avoided since
+the names, IDs and UUIDs must be internally consistent between all the
+branches involved. In addition, group references should not be created
+or deleted manually either. If you attempt any of these actions
+anyway, don&#8217;t forget to <a href="rest-api-groups.html#index-group">Index
+Group</a> reindex the affected groups manually.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_replication">Replication</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In a replicated setting (eg. backups and or primary/replica configurations), all
+refs in the <code>All-Users</code> project on primary nodes must be copied onto all
+replicas, including <code>refs/groups/*</code>, <code>refs/meta/group-names</code> and
+<code>refs/sequences/groups</code>.</p>
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

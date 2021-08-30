@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Gerrit Code Review - JavaScript Plugin Development and API</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Gerrit Code Review - JavaScript Plugin Development and API</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#loading">Plugin loading and initialization</a>
+<ul class="sectlevel2">
+<li><a href="#_examples">Examples</a></li>
+</ul>
+</li>
+<li><a href="#low-level-api-concepts">Low-level DOM API concepts</a>
+<ul class="sectlevel2">
+<li><a href="#low-level-decorating">Decorating DOM Elements</a></li>
+<li><a href="#low-level-replacing">Replacing DOM Elements</a></li>
+<li><a href="#low-level-style">Styling DOM Elements</a></li>
+</ul>
+</li>
+<li><a href="#high-level-api-concepts">High-level DOM API concepts</a></li>
+<li><a href="#low-level-api">Low-level DOM API</a>
+<ul class="sectlevel2">
+<li><a href="#_attributehelper">attributeHelper</a></li>
+<li><a href="#_hook">hook</a></li>
+<li><a href="#_registercustomcomponent">registerCustomComponent</a></li>
+<li><a href="#_registerdynamiccustomcomponent">registerDynamicCustomComponent</a></li>
+<li><a href="#_registerstylemodule">registerStyleModule</a></li>
+<li><a href="#_on">on</a></li>
+</ul>
+</li>
+<li><a href="#high-level-api">High-level API</a>
+<ul class="sectlevel2">
+<li><a href="#_admin">admin</a></li>
+<li><a href="#_changeactions">changeActions</a></li>
+<li><a href="#_changereply">changeReply</a></li>
+<li><a href="#checks">checks</a></li>
+<li><a href="#_getpluginname">getPluginName</a></li>
+<li><a href="#_getserverinfo">getServerInfo</a></li>
+<li><a href="#_popup">popup</a></li>
+<li><a href="#plugin-rest-api">restApi</a></li>
+<li><a href="#plugin-screen">screen</a></li>
+<li><a href="#_url">url</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit Code Review supports an API for JavaScript plugins to interact
+with the web UI and the server process.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="loading">Plugin loading and initialization</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>JavaScript is loaded using a standard <code>&lt;script src='&#8230;&#8203;'&gt;</code> HTML tag.
+Plugins should protect the global namespace by defining their code
+within an anonymous function passed to <code>Gerrit.install()</code>. The plugin
+will be passed an object describing its registration with Gerrit.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The plugin provides pluginname.js, and can be a standalone file or a static
+asset in a jar as a <a href="dev-plugins.html#deployment">Web UI plugin</a>.</p>
+</li>
+<li>
+<p>pluginname.js contains a call to <code>Gerrit.install()</code>. There should
+only be a single <code>Gerrit.install()</code> call per file.</p>
+</li>
+<li>
+<p>The Gerrit web app imports pluginname.js.</p>
+</li>
+<li>
+<p>For standalone plugins, the entry point file is a <code>pluginname.js</code> file
+located in <code>gerrit-site/plugins</code> folder, where <code>pluginname</code> is an alphanumeric
+plugin name.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_examples">Examples</h3>
+<div class="paragraph">
+<p>Here&#8217;s a recommended starter <code>myplugin.js</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-js" data-lang="js">Gerrit.install(plugin =&gt; {
+  // Your code here.
+});</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can find more elaborate examples in the
+<a href="https://gerrit.googlesource.com/gerrit/+/master/polygerrit-ui/app/samples/">polygerrit-ui/app/samples/</a>
+directory of the source tree.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="low-level-api-concepts">Low-level DOM API concepts</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Basically, the DOM is the API surface. Low-level API provides methods for
+decorating, replacing, and styling DOM elements exposed through a set of
+<a href="pg-plugin-endpoints.html">endpoints</a>.</p>
+</div>
+<div class="paragraph">
+<p>Gerrit provides a simple way for accessing the DOM via DOM hooks API. A DOM
+hook is a custom element that is instantiated for the plugin endpoint. In the
+decoration case, a hook is set with a <code>content</code> attribute that points to the DOM
+element.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Get the DOM hook API instance via <code>plugin.hook(endpointName)</code></p>
+</li>
+<li>
+<p>Set up an <code>onAttached</code> callback</p>
+</li>
+<li>
+<p>Callback is called when the hook element is created and inserted into DOM</p>
+</li>
+<li>
+<p>Use element.content to get UI element</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-js" data-lang="js">Gerrit.install(plugin =&gt; {
+  const domHook = plugin.hook('reply-text');
+  domHook.onAttached(element =&gt; {
+    if (!element.content) { return; }
+    // element.content is a reply dialog text area.
+  });
+});</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="low-level-decorating">Decorating DOM Elements</h3>
+<div class="paragraph">
+<p>For each endpoint, Gerrit provides a list of DOM properties (such as
+attributes and events) that are supported in the long-term.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-js" data-lang="js">Gerrit.install(plugin =&gt; {
+  const domHook = plugin.hook('reply-text');
+  domHook.onAttached(element =&gt; {
+    if (!element.content) { return; }
+    element.content.style.border = '1px red dashed';
+  });
+});</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="low-level-replacing">Replacing DOM Elements</h3>
+<div class="paragraph">
+<p>An endpoint&#8217;s contents can be replaced by passing the replace attribute as an
+option.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-js" data-lang="js">Gerrit.install(plugin =&gt; {
+  const domHook = plugin.hook('header-title', {replace: true});
+  domHook.onAttached(element =&gt; {
+    element.appendChild(document.createElement('my-site-header'));
+  });
+});</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="low-level-style">Styling DOM Elements</h3>
+<div class="paragraph">
+<p>A plugin may provide Polymer&#8217;s
+<a href="https://polymer-library.polymer-project.org/3.0/docs/devguide/style-shadow-dom" class="external" target="_blank" rel="noopener">style
+modules</a> to style individual endpoints using
+<code>plugin.registerStyleModule(endpointName, moduleName)</code>. A style must be defined
+as a standalone <code>&lt;dom-module&gt;</code> defined in the same .js file.</p>
+</div>
+<div class="paragraph">
+<p>See
+<a href="https://gerrit.googlesource.com/gerrit/+/master/polygerrit-ui/app/samples/theme-plugin.js">samples/theme-plugin.js</a>
+for an example.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-js" data-lang="js">const styleElement = document.createElement('dom-module');
+styleElement.innerHTML =
+ `&lt;template&gt;
+    &lt;style&gt;
+    html {
+      --primary-text-color: red;
+    }
+   &lt;/style&gt;
+ &lt;/template&gt;`;
+
+styleElement.register('some-style-module');
+
+Gerrit.install(plugin =&gt; {
+  plugin.registerStyleModule('change-metadata', 'some-style-module');
+});</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="high-level-api-concepts">High-level DOM API concepts</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>High level API is based on low-level DOM API and is essentially a standardized
+way for doing common tasks. It&#8217;s less flexible, but will be a bit more stable.</p>
+</div>
+<div class="paragraph">
+<p>The common way to access high-level API is through <code>plugin</code> instance passed
+into setup callback parameter of <code>Gerrit.install()</code>, also sometimes referred to
+as <code>self</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="low-level-api">Low-level DOM API</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The low-level DOM API methods are the base of all UI customization.</p>
+</div>
+<div class="sect2">
+<h3 id="_attributehelper">attributeHelper</h3>
+<div class="paragraph">
+<p><code>plugin.attributeHelper(element)</code></p>
+</div>
+<div class="paragraph">
+<p>Alternative for
+<a href="https://polymer-library.polymer-project.org/3.0/docs/devguide/data-binding" class="external" target="_blank" rel="noopener">Polymer data</a> for plugins that don&#8217;t use Polymer. Can be used to bind element
+attribute changes to callbacks.</p>
+</div>
+<div class="paragraph">
+<p>See
+<a href="https://gerrit.googlesource.com/gerrit/+/master/polygerrit-ui/app/samples/bind-parameters.js">samples/bind-parameters.js</a>
+for an example.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_hook">hook</h3>
+<div class="paragraph">
+<p><code>plugin.hook(endpointName, opt_options)</code></p>
+</div>
+<div class="paragraph">
+<p>See <a href="pg-plugin-endpoints.html">endpoints</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_registercustomcomponent">registerCustomComponent</h3>
+<div class="paragraph">
+<p><code>plugin.registerCustomComponent(endpointName, opt_moduleName, opt_options)</code></p>
+</div>
+<div class="paragraph">
+<p>See <a href="pg-plugin-endpoints.html">endpoints</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_registerdynamiccustomcomponent">registerDynamicCustomComponent</h3>
+<div class="paragraph">
+<p><code>plugin.registerDynamicCustomComponent(dynamicEndpointName, opt_moduleName,
+opt_options)</code></p>
+</div>
+<div class="paragraph">
+<p>See <a href="pg-plugin-endpoints.html">endpoints</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_registerstylemodule">registerStyleModule</h3>
+<div class="paragraph">
+<p><code>plugin.registerStyleModule(endpointName, moduleName)</code></p>
+</div>
+<div class="paragraph">
+<p>See <a href="#low-level-style">above</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_on">on</h3>
+<div class="paragraph">
+<p>Register a JavaScript callback to be invoked when events occur within
+the web interface. Signature</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-js" data-lang="js">self.on(event, callback);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Parameters</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>event: A supported event type. See below for description.</p>
+</li>
+<li>
+<p>callback: JavaScript function to be invoked when event happens.
+Arguments may be passed to this function, depending on the event.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Supported events:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>history</code>: Invoked when the view is changed to a new screen within
+the Gerrit web application.  The token after "#" is passed as the
+argument to the callback function, for example "/c/42/" while
+showing change 42.</p>
+</li>
+<li>
+<p><code>showchange</code>: Invoked when a change is made visible. A
+<a href="rest-api-changes.html#change-info">ChangeInfo</a> and
+<a href="rest-api-changes.html#revision-info">RevisionInfo</a>
+are passed as arguments. Gerrit provides a third parameter which
+is an object with a <code>mergeable</code> boolean.</p>
+</li>
+<li>
+<p><code>submitchange</code>: Invoked when the submit button is clicked
+on a change. A <a href="rest-api-changes.html#change-info">ChangeInfo</a>
+and <a href="rest-api-changes.html#revision-info">RevisionInfo</a> are
+passed as arguments. Similar to a form submit validation, the
+function must return true to allow the operation to continue, or
+false to prevent it. The function may be called multiple times, for
+example, if submitting a change shows a confirmation dialog, this
+event may be called to validate that the check whether dialog can be
+shown, and called again when the submit is confirmed to check whether
+the actual submission action can proceed.</p>
+</li>
+<li>
+<p><code>comment</code>: Invoked when a DOM element that represents a comment is
+created. This DOM element is passed as argument. This DOM element
+contains nested elements that Gerrit uses to format the comment. The
+DOM structure may differ between comment types such as inline
+comments, file-level comments and summary comments, and it may change
+with new Gerrit versions.</p>
+</li>
+<li>
+<p><code>highlightjs-loaded</code>: Invoked when the highlight.js library has
+finished loading. The global <code>hljs</code> object (also now accessible via
+<code>window.hljs</code>) is passed as an argument to the callback function.
+This event can be used to register a new language highlighter with
+the highlight.js library before syntax highlighting begins.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="high-level-api">High-level API</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Plugin instance provides access to a number of more specific APIs and methods
+to be used by plugin authors.</p>
+</div>
+<div class="sect2">
+<h3 id="_admin">admin</h3>
+<div class="paragraph">
+<p><code>plugin.admin()</code></p>
+</div>
+<div class="ulist">
+<div class="title">Params:</div>
+<ul>
+<li>
+<p>none</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Returns:</div>
+<ul>
+<li>
+<p>Instance of <a href="pg-plugin-admin-api.html">GrAdminApi</a>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_changeactions">changeActions</h3>
+<div class="paragraph">
+<p><code>self.changeActions()</code></p>
+</div>
+<div class="paragraph">
+<p>Returns an instance of the
+<a href="https://gerrit.googlesource.com/gerrit/+/master/polygerrit-ui/app/api/change-actions.ts">ChangeActionsPluginApi</a>.</p>
+</div>
+<div class="sect3">
+<h4 id="_changeactions_add">changeActions.add()</h4>
+<div class="paragraph">
+<p>Adds a new action to the change actions section. Returns the key of the newly
+added action.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-js" data-lang="js">changeActions.add(type, label)</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>type: The type of the action, either <code>change</code> or <code>revision</code>.</p>
+</li>
+<li>
+<p>label: The label to be used in UI for this action.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_changeactions_remove">changeActions.remove()</h4>
+<div class="paragraph">
+<p>Removes an action from the change actions section.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-js" data-lang="js">changeActions.remove(key)</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>key: The key of the action.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_changeactions_addtaplistener">changeActions.addTapListener()</h4>
+<div class="paragraph">
+<p>Adds a tap listener to an action that will be invoked when the action
+is tapped.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-js" data-lang="js">changeActions.addTapListener(key, callback)</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>key: The key of the action.</p>
+</li>
+<li>
+<p>callback: JavaScript function to be invoked when action tapped.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_changeactions_removetaplistener">changeActions.removeTapListener()</h4>
+<div class="paragraph">
+<p>Removes an existing tap listener on an action.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-js" data-lang="js">changeActions.removeTapListener(key, callback)</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>key: The key of the action.</p>
+</li>
+<li>
+<p>callback: JavaScript function to be removed.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_changeactions_setlabel">changeActions.setLabel()</h4>
+<div class="paragraph">
+<p>Sets the label for an action.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-js" data-lang="js">changeActions.setLabel(key, label)</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>key: The key of the action.</p>
+</li>
+<li>
+<p>label: The label of the action.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_changeactions_settitle">changeActions.setTitle()</h4>
+<div class="paragraph">
+<p>Sets the title for an action.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-js" data-lang="js">changeActions.setTitle(key, title)</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>key: The key of the action.</p>
+</li>
+<li>
+<p>title: The title of the action.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_changeactions_seticon">changeActions.setIcon()</h4>
+<div class="paragraph">
+<p>Sets an icon for an action.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-js" data-lang="js">changeActions.setIcon(key, icon)</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>key: The key of the action.</p>
+</li>
+<li>
+<p>icon: The name of the icon.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_changeactions_setenabled">changeActions.setEnabled()</h4>
+<div class="paragraph">
+<p>Sets an action to enabled or disabled.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-js" data-lang="js">changeActions.setEnabled(key, enabled)</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>key: The key of the action.</p>
+</li>
+<li>
+<p>enabled: The status of the action, true to enable.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_changeactions_setactionhidden">changeActions.setActionHidden()</h4>
+<div class="paragraph">
+<p>Sets an action to be hidden.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-js" data-lang="js">changeActions.setActionHidden(type, key, hidden)</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>type: The type of the action.</p>
+</li>
+<li>
+<p>key: The key of the action.</p>
+</li>
+<li>
+<p>hidden: True to hide the action, false to show the action.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_changeactions_setactionoverflow">changeActions.setActionOverflow()</h4>
+<div class="paragraph">
+<p>Sets an action to show in overflow menu.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-js" data-lang="js">changeActions.setActionOverflow(type, key, overflow)</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>type: The type of the action.</p>
+</li>
+<li>
+<p>key: The key of the action.</p>
+</li>
+<li>
+<p>overflow: True to move the action to overflow menu, false to move
+the action out of the overflow menu.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_changereply">changeReply</h3>
+<div class="paragraph">
+<p><code>plugin.changeReply()</code></p>
+</div>
+<div class="paragraph">
+<p>Returns an instance of the
+<a href="https://gerrit.googlesource.com/gerrit/+/master/polygerrit-ui/app/api/change-reply.ts">ChangeReplyPluginApi</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="checks">checks</h3>
+<div class="paragraph">
+<p><code>plugin.checks()</code></p>
+</div>
+<div class="paragraph">
+<p>Returns an instance of the <a href="pg-plugin-checks-api.html">ChecksApi</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_getpluginname">getPluginName</h3>
+<div class="paragraph">
+<p><code>plugin.getPluginName()</code></p>
+</div>
+<div class="paragraph">
+<p>Returns the name this plugin was installed as by the server
+administrator. The plugin name is required to access REST API
+views installed by the plugin, or to access resources.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_getserverinfo">getServerInfo</h3>
+<div class="paragraph">
+<p><code>plugin.getServerInfo()</code></p>
+</div>
+<div class="paragraph">
+<p>Returns the host config as a <a href="rest-api-config.html#server-info">ServerInfo</a>
+object.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_popup">popup</h3>
+<div class="paragraph">
+<p><code>plugin.popup(moduleName)</code></p>
+</div>
+<div class="paragraph">
+<p>Creates a popup that contains the given web components. Can be controlled with
+calling <code>open()</code> and <code>close()</code> on the return value.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="plugin-rest-api">restApi</h3>
+<div class="paragraph">
+<p><code>plugin.restApi(opt_prefix)</code></p>
+</div>
+<div class="ulist">
+<div class="title">Params:</div>
+<ul>
+<li>
+<p>(optional) URL prefix, for easy switching into plugin URL space,
+e.g. <code>changes/1/revisions/1/cookbook~say-hello</code></p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Returns:</div>
+<ul>
+<li>
+<p>Instance of <a href="pg-plugin-rest-api.html">RestPluginApi</a>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="plugin-screen">screen</h3>
+<div class="paragraph">
+<p><code>plugin.screen(screenName, opt_moduleName)</code></p>
+</div>
+<div class="paragraph">
+<p>Registers a web component as a dedicated top-level page that the router
+understands and that has a URL (/x/pluginname/screenname) that can be navigated
+to. Extension screens are usually linked from the
+<a href="dev-plugins.html#top-menu-extensions">top menu</a>.</p>
+</div>
+<div class="ulist">
+<div class="title">Params:</div>
+<ul>
+<li>
+<p><code><strong>string</strong> screenName</code> URL path fragment of the screen, e.g.
+<code>/x/pluginname/<strong>screenname</strong></code></p>
+</li>
+<li>
+<p><code><strong>string</strong> opt_moduleName</code> (Optional) Web component to be instantiated for this
+screen.</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Returns:</div>
+<ul>
+<li>
+<p>Instance of HookApi.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_url">url</h3>
+<div class="paragraph">
+<p><code>plugin.url(opt_path)</code></p>
+</div>
+<div class="paragraph">
+<p>Returns a URL within the plugin&#8217;s URL space. If invoked with no
+parameter the URL of the plugin is returned. If passed a string
+the argument is appended to the plugin URL.</p>
+</div>
+<div class="paragraph">
+<p>A plugin&#8217;s URL is where this plugin is loaded, it doesn&#8217;t
+necessary to be the same as the Gerrit host. Use <code>window.location</code>
+if you need to access the Gerrit host info.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-js" data-lang="js">self.url();                    // "https://gerrit-review.googlesource.com/plugins/demo/"
+self.url('/static/icon.png');  // "https://gerrit-review.googlesource.com/plugins/demo/static/icon.png"</code></pre>
+</div>
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

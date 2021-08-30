@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Gerrit Code Review - JavaScript Plugin Rest API</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Gerrit Code Review - JavaScript Plugin Rest API</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_getloggedin">getLoggedIn</a></li>
+<li><a href="#_getversion">getVersion</a></li>
+<li><a href="#_getconfig">getConfig</a></li>
+<li><a href="#_get">get</a></li>
+<li><a href="#_post">post</a></li>
+<li><a href="#_put">put</a></li>
+<li><a href="#_delete">delete</a></li>
+<li><a href="#_send">send</a></li>
+<li><a href="#_fetch">fetch</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This API is provided by <a href="pg-plugin-dev.html#plugin-rest-api">plugin.restApi()</a>
+and provides interface for Gerrit REST API.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_getloggedin">getLoggedIn</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>repoApi.getLoggedIn()</code></p>
+</div>
+<div class="paragraph">
+<p>Get user logged in status.</p>
+</div>
+<div class="ulist">
+<div class="title">Params</div>
+<ul>
+<li>
+<p>None</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Returns</div>
+<ul>
+<li>
+<p>Promise&lt;boolean&gt;</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_getversion">getVersion</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>repoApi.getVersion()</code></p>
+</div>
+<div class="paragraph">
+<p>Get server version.</p>
+</div>
+<div class="ulist">
+<div class="title">Params</div>
+<ul>
+<li>
+<p>None</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Returns</div>
+<ul>
+<li>
+<p>Promise&lt;string&gt;</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_getconfig">getConfig</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>repoApi.getConfig()</code></p>
+</div>
+<div class="paragraph">
+<p>Returns the host config as a <a href="rest-api-config.html#server-info">ServerInfo</a>
+object.</p>
+</div>
+<div class="ulist">
+<div class="title">Params</div>
+<ul>
+<li>
+<p>None</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Returns</div>
+<ul>
+<li>
+<p>Promise&lt;ServerInfo&gt;</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_get">get</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>repoApi.get(url)</code></p>
+</div>
+<div class="paragraph">
+<p>Issues a GET REST API call to the URL, returns Promise that is resolved to
+parsed response on success. Returned Promise is rejected on network error.</p>
+</div>
+<div class="ulist">
+<div class="title">Params</div>
+<ul>
+<li>
+<p><strong>url</strong> String URL without base path or plugin prefix.</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Returns</div>
+<ul>
+<li>
+<p>Promise&lt;Object&gt; Parsed response.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_post">post</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>repoApi.post(url, opt_payload)</code></p>
+</div>
+<div class="paragraph">
+<p>Issues a POST REST API call to the URL, returns Promise that is resolved to
+parsed response on success. Returned Promise is rejected on network error.</p>
+</div>
+<div class="ulist">
+<div class="title">Params</div>
+<ul>
+<li>
+<p><strong>url</strong> String URL without base path or plugin prefix.</p>
+</li>
+<li>
+<p><strong>opt_payload</strong> (optional) Object Payload to be sent with the request.</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Returns</div>
+<ul>
+<li>
+<p>Promise&lt;Object&gt; Parsed response.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_put">put</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>repoApi.put(url, opt_payload)</code></p>
+</div>
+<div class="paragraph">
+<p>Issues a PUT REST API call to the URL, returns Promise that is resolved to
+parsed response on success. Returned Promise is rejected on network error.</p>
+</div>
+<div class="ulist">
+<div class="title">Params</div>
+<ul>
+<li>
+<p><strong>url</strong> String URL without base path or plugin prefix.</p>
+</li>
+<li>
+<p><strong>opt_payload</strong> (optional) Object Payload to be sent with the request.</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Returns</div>
+<ul>
+<li>
+<p>Promise&lt;Object&gt; Parsed response.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_delete">delete</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>repoApi.delete(url)</code></p>
+</div>
+<div class="paragraph">
+<p>Issues a DELETE REST API call to the URL, returns Promise that is resolved to
+parsed response on HTTP 204, and rejected otherwise.</p>
+</div>
+<div class="ulist">
+<div class="title">Params</div>
+<ul>
+<li>
+<p><strong>url</strong> String URL without base path or plugin prefix.</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Returns</div>
+<ul>
+<li>
+<p>Promise&lt;Response&gt; Fetch API&#8217;s Response object.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_send">send</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>repoApi.send(method, url, opt_payload)</code></p>
+</div>
+<div class="paragraph">
+<p>Send payload and parse the response, if request succeeds. Returned Promise is
+rejected with detailed message or HTTP error code on network error.</p>
+</div>
+<div class="ulist">
+<div class="title">Params</div>
+<ul>
+<li>
+<p><strong>method</strong> String HTTP method.</p>
+</li>
+<li>
+<p><strong>url</strong> String URL without base path or plugin prefix.</p>
+</li>
+<li>
+<p><strong>opt_payload</strong> (optional) Object Respected for POST and PUT only.</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Returns</div>
+<ul>
+<li>
+<p>Promise&lt;Object&gt; Parsed response.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_fetch">fetch</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>repoApi.fetch(method, url, opt_payload)</code></p>
+</div>
+<div class="paragraph">
+<p>Send payload and return native Response. This method is for low-level access, to
+implement custom error handling and parsing.</p>
+</div>
+<div class="ulist">
+<div class="title">Params</div>
+<ul>
+<li>
+<p><strong>method</strong> String HTTP method.</p>
+</li>
+<li>
+<p><strong>url</strong> String URL without base path or plugin prefix.</p>
+</li>
+<li>
+<p><strong>opt_payload</strong> (optional) Object Respected for POST and PUT only.</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Returns</div>
+<ul>
+<li>
+<p>Promise&lt;Response&gt; Fetch API&#8217;s Response object.</p>
+</li>
+</ul>
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

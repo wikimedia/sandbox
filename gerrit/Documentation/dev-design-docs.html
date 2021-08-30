@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Gerrit Code Review - Design Docs</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Gerrit Code Review - Design Docs</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#structure">Design Doc Structure</a></li>
+<li><a href="#propose">How to propose a new design?</a></li>
+<li><a href="#review">Design doc review</a>
+<ul class="sectlevel2">
+<li><a href="#meetings">Meeting discussions</a></li>
+</ul>
+</li>
+<li><a href="#watch-designs">How to get notified for new design docs?</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>For the <a href="dev-contributing.html#design-driven-contribution-process">
+design-driven contribution process</a> it is required to specify features
+upfront in a design doc.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="structure">Design Doc Structure</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A design doc should discuss the following aspects:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Use-Cases:
+The interactions between a user and a system to attain particular
+goals.</p>
+</li>
+<li>
+<p>Acceptance Criteria
+Conditions that must be satisfied to consider the feature as done.</p>
+</li>
+<li>
+<p>Background:
+Stuff one needs to know to understand the use-cases (e.g. motivating
+examples, previous versions and problems, links to related
+changes/design docs, etc.)</p>
+</li>
+<li>
+<p>Possible Solutions:
+Possible solutions with the pros and cons, and explanation of
+implementation details.</p>
+</li>
+<li>
+<p>Conclusion:
+Which decision was made and what were the reasons for it.</p>
+</li>
+</ul>
+</div>
+<div id="collaboration" class="paragraph">
+<p>As community we want to collaborate on design docs as much as possible
+and write them together, in an iterative manner. To make this work well
+design docs are split into multiple files that can be written and
+refined by several persons in parallel:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>index.md</code>:
+Entry file that links to the files below (also see
+'dev-design-doc-index-template.md').</p>
+</li>
+<li>
+<p><code>use-cases.md</code>:
+Describes the use-cases, acceptance criteria and background (also see
+'dev-design-doc-use-cases-template.md').</p>
+</li>
+<li>
+<p><code>solution-&lt;n&gt;.md</code>:
+Each possible solution (with the pros and cons, and implementation
+details) is described in a separate file (also see
+'dev-design-doc-solution-template.md').</p>
+</li>
+<li>
+<p><code>conclusion.md</code>:
+Describes the conclusion of the design discussion (also see
+'dev-design-doc-conclusion-template.md').</p>
+</li>
+</ul>
+</div>
+<div id="expectation" class="paragraph">
+<p>It is expected that:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>An agreement on the use-cases is achieved before solutions are being
+discussed in detail.</p>
+</li>
+<li>
+<p>Anyone who has ideas for an alternative solution uploads a change
+with a <code>solution-&lt;n&gt;.md</code> that describes their solution. In case of
+doubt whether an idea is a refinement of an existing solution or an
+alternative solution, it&#8217;s up to the owner of the discussed solution
+to decide if the solution should be updated, or if the proposer
+should start a new alternative solution.</p>
+</li>
+<li>
+<p>All possible solutions are fairly discussed with their pros and cons,
+and treated equally until a conclusion is made.</p>
+</li>
+<li>
+<p>Unrelated issues (judged by the design doc owner) that are identified
+during discussions may be extracted into new design docs (initially
+consisting only of an <code>index.md</code> and a <code>use-cases.md</code> file). Doing so
+is optional yet can be done by either the design owner or reviewers.</p>
+</li>
+<li>
+<p>Changes making iterative improvements can be submitted frequently
+(e.g. additional uses-cases can be added later, solutions can be
+submitted without describing implementation details, etc.).</p>
+</li>
+<li>
+<p>After a conclusion has been approved contributors are expected to
+keep the design doc updated and fill in gaps while they go forward
+with the implementation.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="propose">How to propose a new design?</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To propose a new design, upload a change to the
+<a href="https://gerrit-review.googlesource.com/admin/repos/homepage" class="external" target="_blank" rel="noopener">
+homepage</a> repository that adds a new folder under <code>pages/design-docs/</code>
+which contains at least an <code>index.md</code> and a <code>uses-cases.md</code> file (see
+<a href="#structure">design doc structure</a> above).</p>
+</div>
+<div class="paragraph">
+<p>Pushing a design doc for review requires to be a
+<a href="dev-roles.html#contributor">contributor</a>.</p>
+</div>
+<div class="paragraph">
+<p>When contributing design docs, contributors should make clear whether
+they are committed to do the implementation. It is possible to
+contribute designs without having resources to do the implementation,
+but in this case the implementation is only done if someone volunteers
+to do it (which is not guaranteed to happen).</p>
+</div>
+<div class="paragraph">
+<p>Only very few maintainers actively watch out for uploaded design docs.
+To raise awareness you may want to send a notification to the
+<a href="https://groups.google.com/d/forum/repo-discuss" class="external" target="_blank" rel="noopener">repo-discuss</a>
+mailing list about your uploaded design doc. But the discussion should
+not take place on the mailing list, comments should be made by reviewing
+the change in Gerrit.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="review">Design doc review</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Everyone in the <a href="dev-roles.html">Gerrit community</a> is welcome to
+take part in the design review and comment on the design. As such, every
+design reviewer is expected to respect the community
+<a href="https://www.gerritcodereview.com/codeofconduct.html" class="external" target="_blank" rel="noopener">Code of Conduct</a>.</p>
+</div>
+<div class="paragraph">
+<p>Positive <code>Code-Review</code> votes on changes that add/modify design docs are
+sticky. This means any <code>Code-Review+1</code> and <code>Code-Review+2</code> vote is
+preserved when a new patch set is uploaded. If a new patch set makes
+significant changes, the uploader of the new patch set must start a new
+review round by removing all positive <code>Code-Review</code> votes from the
+change manually.</p>
+</div>
+<div class="paragraph">
+<p>Ideas for alternative solutions should be uploaded as a change that
+describes the solution (see <a href="#collaboration">above</a>). This should be
+done as early as possible during the review process, so that related
+comment threads stop there and do not clutter the current review. It is up
+to the alternative reviews to then host their related comments.</p>
+</div>
+<div class="paragraph">
+<p>Verification should be based on the generated <code>jekyll</code> site using the
+local <code>docker</code>, rather than via the rendering in <code>gitiles</code> (via
+<code>gerrit-review</code>).</p>
+</div>
+<div class="paragraph">
+<p>Changes which make a conclusion on a design (changes that add/change
+the <code>conclusion.md</code> file, see <a href="#structure">Design Doc Structure</a>)
+should stay open for a minimum of 10 calendar days so that everyone has
+a fair chance to see them. It is important that concerns regarding a
+feature are raised during this time frame since once a conclusion is
+approved and submitted the implementation may start immediately.</p>
+</div>
+<div class="paragraph">
+<p>Other design doc changes can and should be submitted quickly so that
+collaboration and iterative refinements work smoothly (see
+<a href="#collaboration">above</a>).</p>
+</div>
+<div class="paragraph">
+<p>For proposed features the contributor should hear back from the
+<a href="dev-processes.html#steering-committee">engineering steering
+committee</a> within 30 calendar days whether the proposed feature is in
+scope of the project and if it can be accepted.</p>
+</div>
+<div class="sect2">
+<h3 id="meetings">Meeting discussions</h3>
+<div class="paragraph">
+<p>If the Gerrit review doesn&#8217;t start efficiently enough, stalls, gets off-track
+too much or becomes overly complex, one can use a meeting to refocus it. From
+that review thread, the organizer can volunteer oneself, or be proposed (even
+requested) by a reviewer. <a href="https://www.gerritcodereview.com/members.html#community-managers" class="external" target="_blank" rel="noopener">
+Community managers</a> may help facilitate that if
+ultimately necessary.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="watch-designs">How to get notified for new design docs?</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Go to the
+<a href="https://gerrit-review.googlesource.com/settings/#Notifications" class="external" target="_blank" rel="noopener">
+notification settings</a></p>
+</li>
+<li>
+<p>Add a project watch for the <code>homepage</code> repository with the following
+query: <code>dir:pages/design-docs</code></p>
+</li>
+</ol>
+</div>
+<hr style="
+  height: 2px;
+  color: silver;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+">
+<div class="paragraph">
+<p>Part of <a href="index.html">Gerrit Code Review</a></p>
+</div>
+<div style="
+  position:fixed;
+  top:0px;
+  right:0px;
+  text-align:
+  right;
+  padding-top:2px;
+  padding-right:0.5em;
+  padding-bottom:2px;">
+<input size="40"
+  style="line-height: 0.75em;font-size: 0.75em;"
+  id="docSearch"
+  type="text">
+<button style="
+  background:none!important;
+  border:none;
+  padding:0!important;
+  vertical-align:bottom;
+  font-family:'Open Sans','DejaVu Sans',sans-serif;
+  font-size:0.8em;
+  color:#1d4b8f;
+  text-decoration:none;"
+  type="button"
+  id="searchBox">
+  Search
+</button>
+
+<script type="text/javascript">
+var f = function() {
+  window.location = '../#/Documentation/q/' +
+    encodeURIComponent(document.getElementById("docSearch").value);
+}
+document.getElementById("searchBox").onclick = f;
+document.getElementById("docSearch").onkeypress = function(e) {
+  if (13 == (e.keyCode ? e.keyCode : e.which)) {
+    f();
+  }
+}
+</script>
+
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

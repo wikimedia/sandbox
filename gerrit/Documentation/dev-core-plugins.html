@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Gerrit Code Review - Core Plugins</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Gerrit Code Review - Core Plugins</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#definition">What are core plugins?</a></li>
+<li><a href="#list">Which core plugins exist?</a>
+<ul class="sectlevel2">
+<li><a href="#criteria">Criteria for Core Plugins</a></li>
+</ul>
+</li>
+<li><a href="#process-to-make-a-plugin-a-core-plugin">Process to make a plugin a core plugin</a>
+<ul class="sectlevel2">
+<li><a href="#removing">Removing Core Plugins</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="definition">What are core plugins?</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Core plugins are plugins that are packaged within the Gerrit war file. This
+means during the <a href="pgm-init.html">Gerrit initialization</a> they can be easily
+installed without downloading any additional files.</p>
+</div>
+<div class="paragraph">
+<p>To make working with core plugins easy, they are linked as
+<a href="https://gerrit.googlesource.com/gerrit/+/refs/heads/master/.gitmodules" class="external" target="_blank" rel="noopener">Git
+submodules</a> in the <code>gerrit</code> repository. E.g. this means they can be easily
+<a href="dev-readme.html#clone">cloned</a> together with Gerrit.</p>
+</div>
+<div class="paragraph">
+<p>All core plugins are developed and maintained by the
+<a href="dev-roles.html#maintainers">Gerrit maintainers</a> and everyone can
+<a href="dev-contributing.html">contribute</a> to them.</p>
+</div>
+<div class="paragraph">
+<p>Adding a new core plugin feature that is large or complex requires a
+<a href="dev-design-doc.html">design doc</a> (also see
+<a href="dev-contributing.html#design-driven-contribution-process">design-driven
+contribution process</a>). The <a href="dev-processes.html#steering-committee">
+engineering steering committee (ESC)</a> is the authority that approves the design
+docs. The ESC is also in charge of adding and removing core plugins.</p>
+</div>
+<div class="paragraph">
+<p>Non-Gerrit maintainers cannot have <a href="access-control.html#category_owner">
+Owner</a> permissions for core plugins.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="list">Which core plugins exist?</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>See <a href="config-plugins.html#core-plugins">here</a>.</p>
+</div>
+<div class="sect2">
+<h3 id="criteria">Criteria for Core Plugins</h3>
+<div class="paragraph">
+<p>To be considered as a core plugin, a plugin must fulfill the following
+criteria:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>License:</p>
+<div class="paragraph">
+<p>The plugin code is available under the
+<a href="http://www.apache.org/licenses/LICENSE-2.0" class="external" target="_blank" rel="noopener">Apache License Version 2.0</a>.</p>
+</div>
+</li>
+<li>
+<p>Hosting:</p>
+<div class="paragraph">
+<p>The plugin development is hosted on the
+<a href="https://gerrit-review.googlesource.com" class="external" target="_blank" rel="noopener">gerrit-review</a> Gerrit Server.</p>
+</div>
+</li>
+<li>
+<p>Scope:</p>
+<div class="paragraph">
+<p>The plugin functionality is Gerrit-related, has a clear scope and does not
+conflict with other core plugins or existing and planned Gerrit core features.</p>
+</div>
+</li>
+<li>
+<p>Relevance:</p>
+<div class="paragraph">
+<p>The plugin functionality is relevant to a majority of the Gerrit community:</p>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>An out of the box Gerrit installation would seem like it is missing
+something if the plugin is not installed.</p>
+</li>
+<li>
+<p>It&#8217;s expected that most sites would use the plugin.</p>
+</li>
+<li>
+<p>Multiple parties (different organizations/companies) already use the plugin
+and agree that it should be offered as core plugin.</p>
+</li>
+<li>
+<p>If the same or similar functionality is provided by multiple plugins,
+the plugin is the clear recommended solution by the community.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>Whether a plugin is relevant to a majority of the Gerrit community must be
+discussed on a case-by-case basis. In case of doubt, it&#8217;s up to the
+<a href="dev-processes.html#steering-committee">engineering steering committee</a> to
+make a decision.</p>
+</div>
+</li>
+<li>
+<p>Code Quality:</p>
+<div class="paragraph">
+<p>The plugin code is mature and has a good test coverage. Maintaining the plugin
+code creates only little overhead for the Gerrit maintainers.</p>
+</div>
+</li>
+<li>
+<p>Documentation:</p>
+<div class="paragraph">
+<p>The plugin functionality is fully documented.</p>
+</div>
+</li>
+<li>
+<p>Ownership:</p>
+<div class="paragraph">
+<p>Existing plugin owners which are not Gerrit maintainers must agree to give up
+their ownership. If the current plugin owners disagree, forking the plugin is
+possible, but this should happen only in exceptional cases.</p>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="process-to-make-a-plugin-a-core-plugin">Process to make a plugin a core plugin</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Anyone can propose to make a plugin a core plugin, but to be accepted as core
+plugin the plugin must fulfill certain <a href="#criteria">criteria</a>.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Propose a plugin as core plugin:</p>
+<div class="paragraph">
+<p>File a <a href="https://bugs.chromium.org/p/gerrit/issues/entry?template=Core+Plugin+Request">
+Core Plugin Request</a> in the issue tracker and provide the information that is
+being asked for in the request template.</p>
+</div>
+</li>
+<li>
+<p>Community Feedback:</p>
+<div class="paragraph">
+<p>Anyone can comment on the issue to raise concerns or to support the request.
+The issue should stay open for at least 10 calendar days so that everyone in
+the community has a chance to comment.</p>
+</div>
+</li>
+<li>
+<p>ESC Decision:</p>
+<div class="paragraph">
+<p>The ESC should discuss the request and reject/approve it or ask for further
+information that the reporter or commenters should provide.</p>
+</div>
+<div class="paragraph">
+<p>Any decision must be based on the <a href="#criteria">criteria</a> that core plugins
+are expected to fulfill and should take the feedback from the community into
+account.</p>
+</div>
+<div class="paragraph">
+<p>Accepting the request is only possible if the issue was open for at least 10
+calendar days (see 2., this gives the community time to comment).</p>
+</div>
+<div class="paragraph">
+<p>When the ESC approves/rejects the request a summary of the reasons for the
+decision should be added to the issue.</p>
+</div>
+<div class="paragraph">
+<p>If a request is rejected, it&#8217;s possible to ask for a revalidation if the
+concerns that led to the rejection have been addressed (e.g. the plugin was
+rejected due to missing tests, but tests have been added afterwards).</p>
+</div>
+</li>
+<li>
+<p>Add plugin as core plugin:</p>
+<div class="paragraph">
+<p>If the request was accepted, a Gerrit maintainer should add the plugin as
+core plugin:</p>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>Host the plugin repo on <a href="https://gerrit-review.googlesource.com/">
+gerrit-review</a>.</p>
+</li>
+<li>
+<p>Ensure that the plugin repo inherits from the
+<a href="https://gerrit-review.googlesource.com/admin/repos/Public-Plugins">
+Public-Plugins</a> repo.</p>
+</li>
+<li>
+<p>Remove all permissions on the plugin repo (the inherited permissions from
+<code>Public-Plugins</code> should be enough). Especially make sure that there are no
+<a href="access-control.html#category_owner">Owner</a>,
+<a href="access-control.html#category_push_direct">Direct Push</a>,
+<a href="access-control.html#category_submit">Submit</a> or
+<a href="access-control.html#category_review_labels">Code-Review+2</a>
+permissions for non-Gerrit maintainers.</p>
+</li>
+<li>
+<p>Create a component for the plugin in
+<a href="https://bugs.chromium.org/p/gerrit/adminComponents">Monorail</a> and assign
+all issues that already exist for the plugin to this component.</p>
+</li>
+<li>
+<p>Add the plugin as
+<a href="https://gerrit.googlesource.com/gerrit/+/refs/heads/master/.gitmodules">Git
+submodule</a>.</p>
+</li>
+<li>
+<p>Register the plugin as core plugin in
+<a href="https://gerrit.googlesource.com/gerrit/+/refs/heads/master/tools/bzl/plugins.bzl">
+plugins.bzl</a>.</p>
+</li>
+<li>
+<p>Announce the new core plugin in the
+<a href="https://www.gerritcodereview.com/news.html">project news</a>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="removing">Removing Core Plugins</h3>
+<div class="paragraph">
+<p>A core plugin could be subject to NOT be considered core anymore if:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Does not respect the license:</p>
+<div class="paragraph">
+<p>The plugin code or the libraries used are not following anymore the
+Apache License Version 2.0.</p>
+</div>
+</li>
+<li>
+<p>Is out of scope:</p>
+<div class="paragraph">
+<p>The plugin functionality has gone outside the Gerrit-related scope,
+has a clear scope or conflict with other core plugins or existing and
+planned Gerrit core features.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The plugin would need to remain core until the planned replacement gets
+implemented. Otherwise the feature is likely missing between the removal and
+planned implementation times.
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>Is not relevant:</p>
+<div class="paragraph">
+<p>The plugin functionality is no more relevant to a majority of the Gerrit community:</p>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>An out of the box Gerrit installation won’t be missing anything if the plugin is
+not installed.</p>
+</li>
+<li>
+<p>It isn’t anymore used by most sites.</p>
+</li>
+<li>
+<p>Multiple parties (different organizations/companies) have abandoned the use of
+the plugin and agree that it should not be anymore a core plugin.</p>
+</li>
+<li>
+<p>If the same or similar functionality is provided by multiple plugins, the plugin
+is not a clear recommended solution anymore by the community.</p>
+</li>
+<li>
+<p>Whether a plugin is no more relevant to a majority of the Gerrit community must be
+discussed on a case-by-case basis. In case of doubt, it’s up to the engineering
+steering committee to make a decision.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p>Degraded code quality:</p>
+<div class="paragraph">
+<p>The plugin code maintenance is lacking and has not anymore good test coverage.
+Maintaining the plugin code creates a significant overhead for the Gerrit maintainers.</p>
+</div>
+</li>
+<li>
+<p>Outdated documentation:</p>
+<div class="paragraph">
+<p>The plugin functionality documented is significantly outdated.</p>
+</div>
+</li>
+</ol>
+</div>
+<hr style="
+  height: 2px;
+  color: silver;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+">
+<div class="paragraph">
+<p>Part of <a href="index.html">Gerrit Code Review</a></p>
+</div>
+<div style="
+  position:fixed;
+  top:0px;
+  right:0px;
+  text-align:
+  right;
+  padding-top:2px;
+  padding-right:0.5em;
+  padding-bottom:2px;">
+<input size="40"
+  style="line-height: 0.75em;font-size: 0.75em;"
+  id="docSearch"
+  type="text">
+<button style="
+  background:none!important;
+  border:none;
+  padding:0!important;
+  vertical-align:bottom;
+  font-family:'Open Sans','DejaVu Sans',sans-serif;
+  font-size:0.8em;
+  color:#1d4b8f;
+  text-decoration:none;"
+  type="button"
+  id="searchBox">
+  Search
+</button>
+
+<script type="text/javascript">
+var f = function() {
+  window.location = '../#/Documentation/q/' +
+    encodeURIComponent(document.getElementById("docSearch").value);
+}
+document.getElementById("searchBox").onclick = f;
+document.getElementById("docSearch").onkeypress = function(e) {
+  if (13 == (e.keyCode ? e.keyCode : e.which)) {
+    f();
+  }
+}
+</script>
+
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

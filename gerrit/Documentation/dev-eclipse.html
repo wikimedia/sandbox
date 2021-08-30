@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Gerrit Code Review - Eclipse Setup</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Gerrit Code Review - Eclipse Setup</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#setup">Project Setup</a>
+<ul class="sectlevel2">
+<li><a href="#_eclipse_project_on_macos">Eclipse project on MacOS</a></li>
+<li><a href="#_eclipse_project_with_custom_plugins">Eclipse project with custom plugins</a></li>
+</ul>
+</li>
+<li><a href="#_java_versions">Java Versions</a></li>
+<li><a href="#Formatting">Code Formatter Settings</a></li>
+<li><a href="#_site_initialization">Site Initialization</a></li>
+<li><a href="#_testing">Testing</a>
+<ul class="sectlevel2">
+<li><a href="#_the_gerrit_web_app_ui_is_served_by_server_go_process_to_launch_it">The Gerrit web app UI is served by <code>server.go</code> process. To launch it,</a></li>
+<li><a href="#_running_the_daemon">Running the Daemon</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This document is about configuring Gerrit Code Review into an
+Eclipse workspace for development.</p>
+</div>
+<div class="paragraph">
+<p>Java 11 or later SDK is required.
+Otherwise, java 8 can still be used for now as described below.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="setup">Project Setup</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In your Eclipse installation&#8217;s <a href="https://wiki.eclipse.org/Eclipse.ini" class="external" target="_blank" rel="noopener"><code>eclipse.ini</code></a> file,
+add the following line in the <code>vmargs</code> section:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  -DmaxCompiledUnitsAtOnce=10000</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Without this setting, annotation processing does not work reliably and the
+build is likely to fail with errors like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  Could not write generated class ... javax.annotation.processing.FilerException: Source file already created</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  AutoAnnotation_Commands_named cannot be resolved to a type</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>First, generate the Eclipse project by running the <code>tools/eclipse/project.py</code> script.
+If running Eclipse on Java 8, add the extra parameter
+<code>-e='--java_toolchain=//tools:error_prone_warnings_toolchain'</code>
+for generating a compatible project.</p>
+</div>
+<div class="paragraph">
+<p>Then, in Eclipse, choose 'Import existing project' and select the <code>gerrit</code> project
+from the current working directory.</p>
+</div>
+<div class="paragraph">
+<p>Expand the <code>gerrit</code> project, right-click on the <code>eclipse-out</code> folder, select
+'Properties', and then under 'Attributes' check 'Derived'.</p>
+</div>
+<div class="paragraph">
+<p>Note that if you make any changes in the project configuration
+that get saved to the <code>.project</code> file, for example adding Resource
+Filters on a folder, they will be overwritten the next time you run
+<code>tools/eclipse/project.py</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="_eclipse_project_on_macos">Eclipse project on MacOS</h3>
+<div class="paragraph">
+<p>By default, bazel uses <code>/private/var/tmp</code> as the
+<a href="https://docs.bazel.build/versions/master/output_directories.html">outputRoot on MacOS</a>.
+This means that the eclipse project will reference libraries stored under that directory.
+However, MacOS runs periodic cleanup task which deletes the content under <code>/private/var/tmp</code>
+which wasn&#8217;t accessed or modified for some days, by default 3 days. This can lead to a broken
+Eclipse project as referenced libraries get deleted.</p>
+</div>
+<div class="paragraph">
+<p>There are two possibilities to mitigate this issue.</p>
+</div>
+<div class="sect3">
+<h4 id="_change_the_location_of_the_bazel_output_directory">Change the location of the bazel output directory</h4>
+<div class="paragraph">
+<p>On Linux, the output directory defaults to <code>$HOME/.cache/bazel</code> and the same can be configured
+on Mac too. Edit, or create, the <code>$HOME/.bazelrc</code> file and add the following line:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>startup --output_user_root=/Users/johndoe/.cache/bazel</pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_increase_the_treshold_for_the_cleanup_of_temporary_files">Increase the treshold for the cleanup of temporary files</h4>
+<div class="paragraph">
+<p>The default treshold for the cleanup can be overriden by creating a configuration file under
+<code>/etc/periodic.conf</code> and setting a larger value for the <code>daily_clean_tmps_days</code>.</p>
+</div>
+<div class="paragraph">
+<p>An example <code>/etc/periodic.conf</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre># This file overrides the settings from /etc/defaults/periodic.conf
+daily_clean_tmps_days="45"                              # If not accessed for</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more details about the proposed workaround see <a href="https://superuser.com/a/187105">this post</a></p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_eclipse_project_with_custom_plugins">Eclipse project with custom plugins</h3>
+<div class="paragraph">
+<p>To add custom plugins to the eclipse project add them to <code>tools/bzl/plugins.bzl</code>
+the same way you would when
+<a href="dev-build-plugins.html#_bundle_custom_plugin_in_release_war">bundling in release.war</a>
+and run <code>tools/eclipse/project.py</code>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_java_versions">Java Versions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Java 11 is supported as a default, but some adjustments must be done for other JDKs:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Add JRE, e.g.: directory: /usr/lib64/jvm/java-9-openjdk, name: java-9-openjdk-9</p>
+</li>
+<li>
+<p>Change execution environment for gerrit project to: JavaSE-9 (java-9-openjdk-9)</p>
+</li>
+<li>
+<p>Check that compiler compliance level in gerrit project is set to: 9</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Moreover, the actual java 11 language features are not supported yet.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="Formatting">Code Formatter Settings</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To format source code, Gerrit uses the
+<a href="https://github.com/google/google-java-format" class="external" target="_blank" rel="noopener"><code>google-java-format</code></a>
+tool (version 1.7), which automatically formats code to follow the
+style guide. See <a href="dev-crafting-changes.html#style">Code Style</a> for the
+instruction how to set up command line tool that uses this formatter.
+The Eclipse plugin is provided that allows to format with the same
+formatter from within the Eclipse IDE. See
+<a href="https://github.com/google/google-java-format#eclipse" class="external" target="_blank" rel="noopener">Eclipse plugin</a>
+for details how to install it. It&#8217;s important to use the same plugin version
+as the <code>google-java-format</code> script.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_site_initialization">Site Initialization</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Build once on the command line with
+<a href="dev-bazel.html#build">Bazel</a> and then follow
+<a href="dev-readme.html#init">Site Initialization</a> in the
+Developer Setup guide to configure a local site for testing.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_testing">Testing</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_the_gerrit_web_app_ui_is_served_by_server_go_process_to_launch_it">The Gerrit web app UI is served by <code>server.go</code> process. To launch it,</h3>
+<div class="paragraph">
+<p>run this command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  $ bazel run polygerrit-ui:devserver</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_running_the_daemon">Running the Daemon</h3>
+<div class="paragraph">
+<p>Duplicate the existing launch configuration:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>In Eclipse select Run &#8594; Debug Configurations &#8230;&#8203;</p>
+</li>
+<li>
+<p>Java Application &#8594; <code>gerrit_daemon</code></p>
+</li>
+<li>
+<p>Right click, Duplicate</p>
+</li>
+<li>
+<p>Modify the name to be unique.</p>
+</li>
+<li>
+<p>Switch to Arguments tab.</p>
+</li>
+<li>
+<p>Edit the <code>-d</code> program argument flag to match the path used during
+'init'.  The template launch configuration resolves to <code>../gerrit_testsite</code>
+since that is what the documentation recommends.</p>
+</li>
+<li>
+<p>Switch to Common tab.</p>
+</li>
+<li>
+<p>Change Save as to be Local file.</p>
+</li>
+<li>
+<p>Close the Debug Configurations dialog and save the changes when prompted.</p>
+</li>
+</ul>
+</div>
+<hr style="
+  height: 2px;
+  color: silver;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+">
+<div class="paragraph">
+<p>Part of <a href="index.html">Gerrit Code Review</a></p>
+</div>
+<div style="
+  position:fixed;
+  top:0px;
+  right:0px;
+  text-align:
+  right;
+  padding-top:2px;
+  padding-right:0.5em;
+  padding-bottom:2px;">
+<input size="40"
+  style="line-height: 0.75em;font-size: 0.75em;"
+  id="docSearch"
+  type="text">
+<button style="
+  background:none!important;
+  border:none;
+  padding:0!important;
+  vertical-align:bottom;
+  font-family:'Open Sans','DejaVu Sans',sans-serif;
+  font-size:0.8em;
+  color:#1d4b8f;
+  text-decoration:none;"
+  type="button"
+  id="searchBox">
+  Search
+</button>
+
+<script type="text/javascript">
+var f = function() {
+  window.location = '../#/Documentation/q/' +
+    encodeURIComponent(document.getElementById("docSearch").value);
+}
+document.getElementById("searchBox").onclick = f;
+document.getElementById("docSearch").onkeypress = function(e) {
+  if (13 == (e.keyCode ? e.keyCode : e.which)) {
+    f();
+  }
+}
+</script>
+
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

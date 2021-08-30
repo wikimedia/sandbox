@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Porting Comments User Documentation</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Porting Comments User Documentation</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_interaction">Interaction</a></li>
+<li><a href="#_position">Position</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Report a bug or send feedback using this [Monorail template](<a href="https://bugs.chromium.org/p/gerrit/issues/entry?template=Porting+Comments" class="bare">https://bugs.chromium.org/p/gerrit/issues/entry?template=Porting+Comments</a>). You can also report a bug through the bug icon in the comment.</p>
+</div>
+<div class="paragraph">
+<p>Comments in Gerrit are associated with a patchset. When a new patchset is uploaded, the comments are lost since they are not associated with the newer patchset.</p>
+</div>
+<div class="imageblock" style="text-align: center">
+<div class="content">
+<img src="images/user-porting-comments-original-comment.png" alt="Comment left on Patchset 15">
+</div>
+</div>
+<div class="paragraph">
+<p>To solve this issue, Gerrit now has “Ported Comments”. These are comments that were left on an older patchset displayed on all the newer patchsets uploaded. For example, a comment left on Patchset 6 will be ported over to Patchset 7, 8 and all subsequent patchsets that are uploaded, not just the latest patchset.</p>
+</div>
+<div class="paragraph">
+<p>Ported comments are not copies of the comment but the comment simply shown in another place.</p>
+</div>
+<div class="paragraph">
+<p>Which comments are ported over?</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Unresolved comments</p>
+</li>
+<li>
+<p>Unresolved drafts</p>
+</li>
+<li>
+<p>Resolved drafts</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Resolved comments are not ported over.</p>
+</div>
+<div class="imageblock" style="text-align: center">
+<div class="content">
+<img src="images/user-porting-comments-ported-comment.png" alt="Comment ported over to patchset 16">
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interaction">Interaction</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Ported comments are visually the same as normal comments. They have a link at the top which shows the original patchset of the comment and links to it.</p>
+</div>
+<div class="paragraph">
+<p>Interacting with the ported comments is exactly the same as interacting with the original comment (again, they are simply the original comment shown in a different location). \
+Marking a ported comment resolved/unresolved will also update the original comment.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_position">Position</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit tries to calculate the position of this comment on the new version of the file and shows the comment on that position for the newer patchset.</p>
+</div>
+<div class="paragraph">
+<p>It’s not always possible to calculate an appropriate position for a comment. In this case, Gerrit attaches these comments as File Level Comments.</p>
+</div>
+<div class="paragraph">
+<p>In some exceptional cases (such as the entire file being reverted), there is no appropriate file to associate this comment with. In this case we do not port this comment over. The comment is still present at its original location and visible in the Comments Tab &amp; Change Log.</p>
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

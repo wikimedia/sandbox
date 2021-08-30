@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Gerrit Code Review - Development Processes</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Gerrit Code Review - Development Processes</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#steering-committee">Project Governance / Engineering Steering Committee</a>
+<ul class="sectlevel2">
+<li><a href="#steering-committee-election">Election of non-Google steering committee members</a></li>
+</ul>
+</li>
+<li><a href="#contribution-process">Contribution Process</a></li>
+<li><a href="#design-doc-review">Design Doc Review</a></li>
+<li><a href="#versioning">Semantic versioning</a></li>
+<li><a href="#dev-in-stable-branches">Development in stable branches</a></li>
+<li><a href="#backporting">Backporting to stable branches</a></li>
+<li><a href="#security-issues">Dealing with Security Issues</a>
+<ul class="sectlevel2">
+<li><a href="#report-security-issue">How to report a security vulnerability?</a></li>
+<li><a href="#embargo">The Embargo</a></li>
+<li><a href="#handle-security-issue">Handling of the Security Vulnerability</a></li>
+</ul>
+</li>
+<li><a href="#core-plugins">Core Plugins</a></li>
+<li><a href="#upgrading-libraries">Upgrading Libraries</a></li>
+<li><a href="#deprecating-features">Deprecating features</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="steering-committee">Project Governance / Engineering Steering Committee</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Gerrit project has an engineering steering committee (ESC) that is
+in charge of:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Gerrit core (the <code>gerrit</code> project) and the <a href="dev-core-plugins.html">core
+plugins</a></p>
+</li>
+<li>
+<p>defining the project vision and the project scope</p>
+</li>
+<li>
+<p>maintaining a roadmap, a release plan and a prioritized backlog</p>
+</li>
+<li>
+<p>ensuring timely design reviews</p>
+</li>
+<li>
+<p>ensuring that new features are compatible with the project vision and
+are well aligned with other features (give feedback on new
+<a href="dev-design-docs.html">design docs</a> within 30 calendar days)</p>
+</li>
+<li>
+<p>approving/rejecting <a href="dev-design-docs.html">designs</a>, vetoing new
+features</p>
+</li>
+<li>
+<p>assigning <a href="dev-roles.html#mentor">mentors</a> for approved features</p>
+</li>
+<li>
+<p>accepting new plugins as core plugins</p>
+</li>
+<li>
+<p>making changes to the project governance process and the
+<a href="dev-contributing.html#contribution-processes">contribution
+processes</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The steering committee has 5 members:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>3 Googlers that are appointed by Google</p>
+</li>
+<li>
+<p>2 non-Google maintainers, elected by non-Google maintainers for the
+period of 1 year (see <a href="#steering-committee-election">below</a>)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Refer to the project homepage for the <a href="https://www.gerritcodereview.com/members.html#engineering-steering-committee" class="external" target="_blank" rel="noopener">
+list of current committee members</a>.</p>
+</div>
+<div class="paragraph">
+<p>The steering committee should act in the interest of the Gerrit project
+and the whole Gerrit community.</p>
+</div>
+<div class="paragraph">
+<p>For decisions, consensus between steering committee members and all
+other maintainers is desired. If consensus cannot be reached, decisions
+can also be made by simple majority in the steering committee (should
+be applied only in exceptional situations).</p>
+</div>
+<div class="paragraph">
+<p>The steering committee is empowered to overrule positive/negative votes
+from individual maintainers, but should do so only in exceptional
+situations after attempts to reach consensus have failed.</p>
+</div>
+<div class="paragraph">
+<p>As an integral part of the Gerrit community, the steering committee is
+committed to transparency and to answering incoming requests in a
+timely manner.</p>
+</div>
+<div class="sect2">
+<h3 id="steering-committee-election">Election of non-Google steering committee members</h3>
+<div class="paragraph">
+<p>The election of the non-Google steering committee members happens once
+a year in May. Non-Google <a href="dev-roles.html#maintainer">maintainers</a>
+can nominate themselves by posting an informal application on the
+non-public <a href="mailto:gerritcodereview-community-managers@googlegroups.com">
+community manager mailing list</a> by end of April (deadline for 2020
+is Thu 30th of April EOD).</p>
+</div>
+<div class="paragraph">
+<p>The list with all candidates will be published at the beginning of the
+voting period (for 2020 the start of the voting is planned for Mon 4th
+of May).</p>
+</div>
+<div class="paragraph">
+<p>Keeping the candidates private during the nomination phase and
+publishing all candidates at once only at the start of the voting
+period ensures that:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>people do not start voting before all candidates are known and the
+voting period has started</p>
+</li>
+<li>
+<p>candidates that announce their candidacy early do not have an
+advantage</p>
+</li>
+<li>
+<p>people are not discouraged to candidate when there are already other
+candidates</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>By applying to be steering committee member, the candidate confirms to
+be able to dedicate the time that is needed to fulfill this role (also
+see <a href="dev-roles.html#steering-committee-member">steering committee
+member</a>).</p>
+</div>
+<div class="paragraph">
+<p>Each non-Google maintainer can vote for 2 candidates. The voting
+happens by posting on the
+<a href="mailto:gerritcodereview-maintainers@googlegroups.com">maintainer mailing
+list</a>. The voting period is 14 calendar days from the start of the
+voting (for 2020 the voting period ends on Mon 18th May EOD).</p>
+</div>
+<div class="paragraph">
+<p>Google maintainers do not take part in this vote, because Google
+already has dedicated seats in the steering committee (see section
+<a href="#steering-committee">steering committee</a>).</p>
+</div>
+<div class="paragraph">
+<p>If a non-Google seat on the steering committee becomes vacant before
+the current term ends, an exceptional election is conducted in order
+to replace the member(s) leaving the committee. The election will
+follow the same procedure as regular steering committee elections.
+The number of votes each maintainer gets in such exceptional election
+matches the number of seats to be filled. The term of the new member
+of the steering committee ends at the end of the current term of
+the steering committee when the next regular election concludes.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="contribution-process">Contribution Process</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>See <a href="dev-contributing.html">here</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="design-doc-review">Design Doc Review</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>See <a href="dev-design-docs.html#review">here</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="versioning">Semantic versioning</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit follows a light <a href="https://semver.org/" class="external" target="_blank" rel="noopener">semantic versioning scheme</a> MAJOR.MINOR[.PATCH[.HOTFIX]]
+format:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>MAJOR is incremented when there are substantial incompatible changes and/or
+new features in Gerrit.</p>
+</li>
+<li>
+<p>MINOR is incremented when there are changes that are typically backward compatible
+with the earlier minor version. Features can be removed following the
+<a href="#deprecating-features">feature deprecation process</a>. Dependencies can be upgraded
+according to the <a href="dev-processes.html#upgrading-libraries">libraries upgrade policy</a>.</p>
+</li>
+<li>
+<p>PATCH is incremented when there are backward-compatible bug fixes in Gerrit or its
+dependencies. When PATCH is zero, it can be omitted.</p>
+</li>
+<li>
+<p>HOTFIX is present only when immediately after a patch release, some urgent
+fixes in the code or the packaging format are required but do not justify a
+new patch release.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For every MAJOR.MINOR release there is an associated stable branch that follows well defined
+<a href="#dev-in-stable-branches">rules of development</a>.</p>
+</div>
+<div class="paragraph">
+<p>Within a stable branch, there are multiple MAJOR.MINOR.PATCH tags created associated to the
+bug-fix releases of that stable release.</p>
+</div>
+<div class="paragraph">
+<p>Examples:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Gerrit v3.0.0 contains breaking incompatible changes in the functionality because
+the ReviewDb storage has been totally removed.</p>
+</li>
+<li>
+<p>Gerrit v2.15 contains brand-new features like NoteDb, however, still supports the existing
+ReviewDb storage for changes and thus is considered a minor release.</p>
+</li>
+<li>
+<p>Gerrit v2.14.20 is the 20th patch-release of the stable Gerrit v2.14.* and thus does not contain
+new features but only bug-fixes.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="dev-in-stable-branches">Development in stable branches</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>As their name suggests stable branches are intended to be stable. This means that generally
+only bug-fixes should be done on stable branches, however this is not strictly enforced and
+exceptions may apply:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>When a stable branch is initially created to prepare a new release the Gerrit community
+discusses on the mailing list if there are pending features which should still make it into the
+release. Those features are blocking the release and should be implemented on the stable
+branch before the first release candidate is created.</p>
+</li>
+<li>
+<p>To stabilize the code before doing a major release several release candidates are created. Once
+the first release candidate was done no more features should be accepted on the stable branch.
+If more features are found to be required they should be discussed with the steering committee
+and should only be allowed if the risk of breaking things is considered to be low.</p>
+</li>
+<li>
+<p>Once a major release is done only bug-fixes and documentation updates should be done on the
+stable branch. These updates will be included in the next minor release.</p>
+</li>
+<li>
+<p>For minor releases new features could be acceptable if the following conditions are met:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>they are result of a new feature introduced through a merge of an earlier stable branch</p>
+</li>
+<li>
+<p>they are justified for completing, extending or fixing an existing feature</p>
+</li>
+<li>
+<p>does not involve API, user-interface changes or data migrations</p>
+</li>
+<li>
+<p>is backward compatible with all existing features</p>
+</li>
+<li>
+<p>the parts of the code in common with existing features are properly covered by end-to-end tests</p>
+</li>
+<li>
+<p>is important to the Gerrit community and no Gerrit maintainers have raised objections.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>In cases of doubt or conflicting opinions on new features, it&#8217;s the responsibility of the
+steering committee to evaluate the risk of new features and make a decision based on these
+rules and opinions from the Gerrit community.</p>
+</li>
+<li>
+<p>The older a stable branch is the more stable it should be. This means old stable branches
+should only receive bug-fixes that are either important or low risk. Security fixes, including
+security updates for third party dependencies, are always considered as important and hence can
+always be done on stable branches.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Examples:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Gerrit v3.0.0-rc1 and v3.0.0-rc2 may contain new features and API changes without notice,
+even if they are both cut on the same stable-3.0 branch.</p>
+</li>
+<li>
+<p>Gerrit v2.14.8 introduced the support for ElasticSearch as a new feature. This was an exception
+agreed amongst the Gerrit maintainers, did not touch the Lucene indexing code-base, was supported
+by container-based E2E tests and represents a completion of an high-level feature.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="backporting">Backporting to stable branches</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>From time to time bug fix releases are made for existing stable branches.</p>
+</div>
+<div class="paragraph">
+<p>Developers concerned with stable branches are encouraged to backport or push fixes to these
+branches, even if no new release is planned. Backporting features is only possible in compliance
+with the rules <a href="#dev-in-stable-branches">above</a>.</p>
+</div>
+<div class="paragraph">
+<p>Fixes that are known to be needed for a particular release should be pushed for review on that
+release&#8217;s stable branch. They will then be included into the master branch when the stable branch
+is merged back.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="security-issues">Dealing with Security Issues</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If a security vulnerability in Gerrit is discovered, we place an <a href="#embargo">
+embargo</a> on it until a fixed release or mitigation is available. Fixing the
+issue is usually pursued with high priority (depends on the severity of the
+security vulnerability). The embargo is lifted and the vulnerability is
+disclosed to the community as soon as a fix release or another mitigation is
+available.</p>
+</div>
+<div class="sect2">
+<h3 id="report-security-issue">How to report a security vulnerability?</h3>
+<div class="paragraph">
+<p>To report a security vulnerability file a
+<a href="https://bugs.chromium.org/p/gerrit/issues/entry?template=Security+Issue" class="external" target="_blank" rel="noopener">
+security issue</a> in the Gerrit issue tracker. The visibility of issues that are
+created with the <code>Security Issue</code> template is automatically restricted to
+Gerrit maintainers and a few long-term contributors. This means as a reporter
+you may not be able to see the issue once it is created. Security issues are
+created on the <code>ESC</code> component so that they will be discussed at the next
+meeting of the <a href="#steering-committee">Engineering Steering Committee</a> which
+takes place biweekly.</p>
+</div>
+<div class="paragraph">
+<p>If an existing issue is found to be a security vulnerability it should be
+turned into a security issue by:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Setting the component to <code>ESC</code></p>
+</li>
+<li>
+<p>Adding the labels <code>Security</code> and <code>NonPublic</code></p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>In case of doubt, or if an issue cannot wait until the next ESC meeting,
+contact the <a href="#steering-committee">Engineering Steering Committee</a> directly
+by sending them an <a href="mailto:gerritcodereview-esc@googlegroups.com">email</a>.</p>
+</div>
+<div class="paragraph">
+<p>If needed, the ESC will contact the reporter for additional details.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="embargo">The Embargo</h3>
+<div class="paragraph">
+<p>Once an issue has been identified as security vulnerability, we keep it under
+embargo until a fixed release or a mitigation is available. This means that the
+issue is not discussed publicly, but only on issues with restricted visibility
+(see <a href="#report-security-issue">above</a>) and at the mailing lists of the ESC,
+community managers and Gerrit maintainers. Since the <code>repo-discuss</code> mailing
+list is public, security issues must not be discussed on this mailing list
+while the embargo is in place.</p>
+</div>
+<div class="paragraph">
+<p>The reason for keeping an embargo is to prevent attackers from taking advantage
+of a vulnerability while no fixed releases are available yet, and Gerrit
+administrators cannot make their systems secure.</p>
+</div>
+<div class="paragraph">
+<p>Once a fix release or mitigation is available, the embargo is lifted and the
+community is informed about the security vulnerability with the advise to
+address the security vulnerability immediately (either by upgrading to a fixed
+release or applying the mitigation). The information about the security
+vulnerability is disclosed via the
+<a href="https://groups.google.com/d/forum/repo-discuss" class="external" target="_blank" rel="noopener">repo-discuss</a> mailing list.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="handle-security-issue">Handling of the Security Vulnerability</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Engineering Steering Committee evaluates the security vulnerability:</p>
+<div class="paragraph">
+<p>The ESC discusses the security vulnerability and which actions should be taken
+to address it. One person, usually one of the Gerrit maintainers, should be
+appointed to drive and coordinate the investigation and the fix of the security
+vulnerability. This coordinator doesn&#8217;t need to do all the work alone, but is
+responsible that the security vulnerability is getting fixed in a timely
+manner.</p>
+</div>
+<div class="paragraph">
+<p>If the security vulnerability affects multiple or older releases the ESC should
+decide which of the releases should be fixed. For critical security issue we
+also consider fixing old releases that are otherwise not receiving any
+bug-fixes anymore.</p>
+</div>
+<div class="paragraph">
+<p>It&#8217;s also possible that the ESC decides that an issue is not a security issue
+and the embargo is lifted immediately.</p>
+</div>
+</li>
+<li>
+<p>Filing a CVE</p>
+<div class="paragraph">
+<p>For every security issue a CVE that describes the issue and lists the affected
+releases should be filed. Filing a CVE can be done by any maintainer that works
+for an organization that can request CVE numbers (e.g. Googlers). The CVE
+number must be included in the release notes. The CVE itself is only made
+public after fixed released have been published and the embargo has been
+lifted.</p>
+</div>
+</li>
+<li>
+<p>Implementation of the security fix:</p>
+<div class="paragraph">
+<p>To keep the embargo intact, security fixes cannot be developed and reviewed in
+the public <code>gerrit</code> repository. In particular it&#8217;s not secure to use private
+changes for implementing and reviewing security fixes (see general notes about
+<a href="intro-user.html">security-fixes</a>).</p>
+</div>
+<div class="paragraph">
+<p>Instead security fixes should be implemented and reviewed in the non-public
+<a href="https://gerrit-review.googlesource.com/admin/repos/gerrit-security-fixes" class="external" target="_blank" rel="noopener">
+gerrit-security-fixes</a> repository which is only accessible by Gerrit
+maintainers and Gerrit community members that work on security fixes.</p>
+</div>
+<div class="paragraph">
+<p>The change that fixes the security vulnerability should contain an integration
+test that verifies that the security vulnerability is no longer present.</p>
+</div>
+<div class="paragraph">
+<p>Review and approval of the security fixes must be done by the Gerrit
+maintainers.</p>
+</div>
+<div class="paragraph">
+<p>Once a security fix is ready and submitted, it should be cherry-picked to all
+branches that should be fixed.</p>
+</div>
+</li>
+<li>
+<p>CI validation of the security fix:</p>
+<div class="paragraph">
+<p>The validation of the security fixes does not happen on the regular Gerrit CI,
+because it would compromise the confidentiality of the fix and therefore break
+the embargo.</p>
+</div>
+<div class="paragraph">
+<p>The release manager maintains a private branch on the
+<a href="https://gerrit-review.googlesource.com/admin/repos/gerrit-ci-scripts" class="external" target="_blank" rel="noopener">gerrit-ci-scripts</a> repository
+which contains a special build pipeline with special visibility restrictions.</p>
+</div>
+<div class="paragraph">
+<p>The validation process provides feedback, in terms of Code-Style, Verification
+and Checks, to the incoming security changes. The links associated
+with the build logs are exposed over the Internet but their access limited
+to only those who are actively participating in the development and review of
+the security fix.</p>
+</div>
+<div class="paragraph">
+<p>The maintainers that are willing to access the links to the CI logs need
+to request a time-limited (maximum 30 days) nominal X.509 certificate from a
+CI maintainer, which allows to access the build logs and analyze failures.
+The release manager may help obtaining that certificate from CI maintainers.</p>
+</div>
+</li>
+<li>
+<p>Creation of fixed releases and announcement of the security vulnerability:</p>
+<div class="paragraph">
+<p>A release manager should create new bug fix releases for all fixed branches.</p>
+</div>
+<div class="paragraph">
+<p>The new releases should be tested against the security vulnerability to
+double-check that the release was built from the correct source that contains
+the fix for the security vulnerability.</p>
+</div>
+<div class="paragraph">
+<p>Before publishing the fixed releases, an announcement to the Gerrit community
+should be prepared. The announcement should clearly describe the security
+vulnerability, which releases are affected and which releases contain the fix.
+The announcement should recommend to upgrade to fixed releases immediately.</p>
+</div>
+<div class="paragraph">
+<p>Once all releases are ready and tested and the announcement is prepared, the
+releases should be all published at the same time. Immediately after that, the
+announcement should be sent out to the
+<a href="https://groups.google.com/d/forum/repo-discuss" class="external" target="_blank" rel="noopener">repo-discuss</a> mailing list.</p>
+</div>
+<div class="paragraph">
+<p>This ends the embargo and any issue that discusses the security vulnerability
+should be made public.</p>
+</div>
+</li>
+<li>
+<p>Publish the CVE</p>
+</li>
+<li>
+<p>Follow-Up</p>
+<div class="paragraph">
+<p>The ESC should discuss if there are any learnings from the security
+vulnerability and define action items to follow up in the
+<a href="https://bugs.chromium.org/p/gerrit" class="external" target="_blank" rel="noopener">issue tracker</a>.</p>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="core-plugins">Core Plugins</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>See <a href="dev-core-plugins.html">here</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="upgrading-libraries">Upgrading Libraries</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Changes that add new libraries or upgrade existing libraries require an approval on the
+<code>Library-Compliance</code> label. For an approval the following things are checked:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The library has a license that is suitable for use within Gerrit.</p>
+</li>
+<li>
+<p>If the library is used within Google, the version of the library must be compatible with the
+version that is used at Google.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Only maintainers from Google can vote on the <code>Library-Compliance</code> label.</p>
+</div>
+<div class="paragraph">
+<p>Gerrit&#8217;s library dependencies should only be upgraded if the new version contains
+something we need in Gerrit. This includes new features, API changes as well as bug
+or security fixes.
+An exception to this rule is that right after a new Gerrit release was branched
+off, all libraries should be upgraded to the latest version to prevent Gerrit
+from falling behind. Doing those upgrades should conclude at the latest two
+months after the branch was cut. This should happen on the master branch to ensure
+that they are vetted long enough before they go into a release and we can be sure
+that the update doesn&#8217;t introduce a regression.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="deprecating-features">Deprecating features</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit should be as stable as possible and we aim to add only features that last.
+However, sometimes we are required to deprecate and remove features to be able
+to move forward with the project and keep the code-base clean. The following process
+should serve as a guideline on how to deprecate functionality in Gerrit. Its purpose
+is that we have a structured process for deprecation that users, administrators and
+developers can agree and rely on.</p>
+</div>
+<div class="paragraph">
+<p>General process:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Make sure that the feature (e.g. a field on the API) is not needed anymore or blocks
+further development or improvement. If in doubt, consult the mailing list.</p>
+</li>
+<li>
+<p>If you can provide a schema migration that moves users to a comparable feature, do
+so and stop here.</p>
+</li>
+<li>
+<p>Mark the feature as deprecated in the documentation and release notes.</p>
+</li>
+<li>
+<p>If possible, mark the feature deprecated in any user-visible interface. For example,
+if you are deprecating a Git push option, add a message to the Git response if
+the user provided the option informing them about deprecation.</p>
+</li>
+<li>
+<p>Annotate the code with <code>@Deprecated</code> and <code>@RemoveAfter(x.xx)</code> if applicable.
+Alternatively, use <code>// DEPRECATED, remove after x.xx</code> (where x.xx is the version
+number that has to be branched off before removing the feature)</p>
+</li>
+<li>
+<p>Gate the feature behind a config that is off by default (forcing admins to turn
+the deprecated feature on explicitly).</p>
+</li>
+<li>
+<p>After the next release was branched off, remove any code that backed the feature.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can optionally consult the mailing list to ask if there are users of the feature you
+wish to deprecate. If there are no major users, you can remove the feature without
+following this process and without the grace period of one release.</p>
+</div>
+<hr style="
+  height: 2px;
+  color: silver;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+">
+<div class="paragraph">
+<p>Part of <a href="index.html">Gerrit Code Review</a></p>
+</div>
+<div style="
+  position:fixed;
+  top:0px;
+  right:0px;
+  text-align:
+  right;
+  padding-top:2px;
+  padding-right:0.5em;
+  padding-bottom:2px;">
+<input size="40"
+  style="line-height: 0.75em;font-size: 0.75em;"
+  id="docSearch"
+  type="text">
+<button style="
+  background:none!important;
+  border:none;
+  padding:0!important;
+  vertical-align:bottom;
+  font-family:'Open Sans','DejaVu Sans',sans-serif;
+  font-size:0.8em;
+  color:#1d4b8f;
+  text-decoration:none;"
+  type="button"
+  id="searchBox">
+  Search
+</button>
+
+<script type="text/javascript">
+var f = function() {
+  window.location = '../#/Documentation/q/' +
+    encodeURIComponent(document.getElementById("docSearch").value);
+}
+document.getElementById("searchBox").onclick = f;
+document.getElementById("docSearch").onkeypress = function(e) {
+  if (13 == (e.keyCode ? e.keyCode : e.which)) {
+    f();
+  }
+}
+</script>
+
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>
