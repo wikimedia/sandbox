@@ -3,6 +3,8 @@ Welcome!
 
 Here you can make test changes and experiment with Wikimedia Gerrit, using this repository!
 
+Making the first steps in understanding git and gerrit
+Hello- testing amending a change
 Don't worry about messing this repository up; it is meant for testing.
 
 # Helpful links
