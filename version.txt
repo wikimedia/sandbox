@@ -1,3 +1,3 @@
 Pretend this is the commit finalizing a new version of a library
-1.0
+
 Another new library version has been added.
