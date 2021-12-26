@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Gerrit Code Review - System Design</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Gerrit Code Review - System Design</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_objective">Objective</a></li>
+<li><a href="#_background">Background</a></li>
+<li><a href="#_overview">Overview</a></li>
+<li><a href="#_infrastructure">Infrastructure</a>
+<ul class="sectlevel2">
+<li><a href="#_notedb">NoteDb</a></li>
+</ul>
+</li>
+<li><a href="#_permissions">Permissions</a>
+<ul class="sectlevel2">
+<li><a href="#_indexing">Indexing</a></li>
+</ul>
+</li>
+<li><a href="#_plug_in_architecture">Plug-in architecture</a>
+<ul class="sectlevel2">
+<li><a href="#_backend_plugins">Backend plugins</a></li>
+<li><a href="#_frontend_plugins">Frontend plugins</a></li>
+</ul>
+</li>
+<li><a href="#_internationalization_and_localization">Internationalization and Localization</a></li>
+<li><a href="#_accessibility_considerations">Accessibility Considerations</a></li>
+<li><a href="#_browser_compatibility">Browser Compatibility</a></li>
+<li><a href="#_product_integration">Product Integration</a></li>
+<li><a href="#_privacy_considerations">Privacy Considerations</a></li>
+<li><a href="#_spam_and_abuse_considerations">Spam and Abuse Considerations</a></li>
+<li><a href="#_scalability">Scalability</a>
+<ul class="sectlevel2">
+<li><a href="#_scaling_team_size">Scaling team size</a></li>
+<li><a href="#_browser_performance">Browser performance</a></li>
+<li><a href="#_real_life_numbers">Real life numbers</a></li>
+</ul>
+</li>
+<li><a href="#_redundancy_reliability">Redundancy &amp; Reliability</a>
+<ul class="sectlevel2">
+<li><a href="#_backups">Backups</a></li>
+</ul>
+</li>
+<li><a href="#_logging_plan">Logging Plan</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_objective">Objective</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit is a web based code review system, facilitating online code
+reviews for projects using the Git version control system.</p>
+</div>
+<div class="paragraph">
+<p>Gerrit makes reviews easier by showing changes in a side-by-side
+display, and allowing inline/file comments to be added by any reviewer.</p>
+</div>
+<div class="paragraph">
+<p>Gerrit simplifies Git based project maintainership by permitting
+any authorized user to submit changes to the master Git repository,
+rather than requiring all approved changes to be merged in by
+hand by the project maintainer.  This functionality enables a more
+centralized usage of Git.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_background">Background</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Git is a distributed version control system, wherein each repository
+is assumed to be owned/maintained by a single user.  There are no
+inherent security controls built into Git, so the ability to read
+from or write to a repository is controlled entirely by the host&#8217;s
+filesystem or network access controls.</p>
+</div>
+<div class="paragraph">
+<p>The objective of Gerrit is to facilitate Git development by larger
+teams: it provides a means to enforce organizational policies around
+code submissions, eg. "all code must be reviewed by another
+developer", "all code shall pass tests". It achieves this by</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>providing fine-grained (per-branch, per-repository, inheriting)
+access controls, which allow a Gerrit admin to delegate permissions
+to different team(-lead)s.</p>
+</li>
+<li>
+<p>facilitate code review: Gerrit offers a web view of pending code
+changes, that allows for easy reading and commenting by humans. The
+web view can offer data coming out of automated QA processes (eg.
+CI). The permission system also includes fine grained control of who
+can approve pending changes for submission to further facilitate
+delegation of code ownership.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_overview">Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Developers create one or more changes on their local desktop system,
+then upload them for review to Gerrit using the standard <code>git push</code>
+command line program, or any GUI which can invoke <code>git push</code> on behalf
+of the user. Authentication and data transfer are handled through SSH
+and HTTPS. Uploads are protected by the authentication,
+confidentiality and integrity offered by the transport (SSH, HTTPS).</p>
+</div>
+<div class="paragraph">
+<p>Each Git commit created on the client desktop system is converted into
+a unique change record which can be reviewed independently.</p>
+</div>
+<div class="paragraph">
+<p>A summary of each newly uploaded change is automatically emailed
+to reviewers, so they receive a direct hyperlink to review the
+change on the web.  Reviewer email addresses can be specified on the
+<code>git push</code> command line, but typically reviewers are added in the web
+interface.</p>
+</div>
+<div class="paragraph">
+<p>Reviewers use the web interface to read the side-by-side or unified
+diff of a change, and insert draft inline/file comments where
+appropriate. A draft comment is visible only to the reviewer, until
+they publish those comments.  Published comments are automatically
+emailed to the change author by Gerrit, and are CC&#8217;d to all other
+reviewers who have already commented on the change.</p>
+</div>
+<div class="paragraph">
+<p>Reviewers can score the change ("vote"), indicating whether they feel the
+change is ready for inclusion in the project, needs more work, or
+should be rejected outright. These scores provide direct feedback to
+Gerrit&#8217;s change submit function.</p>
+</div>
+<div class="paragraph">
+<p>After a change has been scored positively by reviewers, Gerrit enables
+a submit button on the web interface. Authorized users can push the
+submit button to have the change enter the project repository. The
+user pressing the submit button does not need to be the author of the
+change.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_infrastructure">Infrastructure</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>End-user web browsers make HTTP requests directly to Gerrit&#8217;s
+HTTP server. As nearly all of the Gerrit user interface is implemented
+in a JavaScript based web app, the majority of these requests are
+transmitting compressed JSON payloads, with all HTML being generated
+within the browser.</p>
+</div>
+<div class="paragraph">
+<p>Gerrit&#8217;s HTTP server side component is implemented as a standard Java
+servlet, and thus runs within any <a href="install-j2ee.html">J2EE servlet
+container</a>. The standard install will run inside Jetty, which is
+included in the binary.</p>
+</div>
+<div class="paragraph">
+<p>End-user uploads are performed over SSH or HTTP, so Gerrit&#8217;s servlets
+also start up a background thread to receive SSH connections through
+an independent SSH port. SSH clients communicate directly with this
+port, bypassing the HTTP server used by browsers.</p>
+</div>
+<div class="paragraph">
+<p>User authentication is handled by identity realms. Gerrit supports the
+following types of authentication:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>OpenId (see <a href="http://openid.net/developers/specs/" class="external" target="_blank" rel="noopener">OpenID Specifications</a>)</p>
+</li>
+<li>
+<p>OAuth2</p>
+</li>
+<li>
+<p>LDAP</p>
+</li>
+<li>
+<p>Google accounts (on googlesource.com)</p>
+</li>
+<li>
+<p>SAML</p>
+</li>
+<li>
+<p>Kerberos</p>
+</li>
+<li>
+<p>3rd party SSO</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_notedb">NoteDb</h3>
+<div class="paragraph">
+<p>Server side data storage for Gerrit is broken down into two different
+categories:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Git repository data</p>
+</li>
+<li>
+<p>Gerrit metadata</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The Git repository data is the Git object database used to store
+already submitted revisions, as well as all uploaded (proposed)
+changes.  Gerrit uses the standard Git repository format, and
+therefore requires direct filesystem access to the repositories.
+All repository data is stored in the filesystem and accessed through
+the JGit library.  Repository data can be stored on remote servers
+accessible through NFS or SMB, but the remote directory must
+be mounted on the Gerrit server as part of the local filesystem
+namespace.  Remote filesystems are likely to perform worse than
+local ones, due to Git disk IO behavior not being optimized for
+remote access.</p>
+</div>
+<div class="paragraph">
+<p>The Gerrit metadata contains a summary of the available changes, all
+comments (published and drafts), and individual user account
+information.</p>
+</div>
+<div class="paragraph">
+<p>Gerrit metadata is also stored in Git, with the commits marking the
+historical state of metadata. Data is stored in the trees associated
+with the commits, typically using Git config file or JSON as the base
+format. For metadata, there are 3 types of data: changes, accounts and
+groups.</p>
+</div>
+<div class="paragraph">
+<p>Accounts are stored in a special Git repository <code>All-Users</code>.</p>
+</div>
+<div class="paragraph">
+<p>Accounts can be grouped in groups. Gerrit has a built-in group system,
+but can also interface to external group system (eg. Google groups,
+LDAP). The built-in groups are stored in <code>All-Users</code>.</p>
+</div>
+<div class="paragraph">
+<p>Draft comments are stored in <code>All-Users</code> too.</p>
+</div>
+<div class="paragraph">
+<p>Permissions are stored in Git, in a branch <code>refs/meta/config</code> for the
+repository. Repository configuration (including permissions) supports
+single inheritance, with the <code>All-Projects</code> repository containing
+site-wide defaults.</p>
+</div>
+<div class="paragraph">
+<p>Code review metadata is stored in Git, alongside the code under
+review. Metadata includes change status, votes, comments. This review
+metadata is stored in NoteDb along with the submitted code and code
+under review. Hence, the review history can be exported with <code>git
+clone --mirror</code> by anyone with sufficient permissions.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_permissions">Permissions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Permissions are specified on branch names, and given to groups. For
+example,</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code>[access "refs/heads/stable/*"]
+        push = group Release-Engineers</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>this provides a rule, granting Release-Engineers push permission for
+stable branches.</p>
+</div>
+<div class="paragraph">
+<p>There are fundamentally two types of permissions:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Write permissions (who can vote, push, submit etc.)</p>
+</li>
+<li>
+<p>Read permissions (who can see data)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Read permissions need special treatment across Gerrit, because Gerrit
+should only surface data (including repository existence) if a user
+has read permission. This means that</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The git wire protocol support must omit references from
+advertisement if the user lacks read permissions</p>
+</li>
+<li>
+<p>Uploads through the git wire protocol must refuse commits that are
+based on SHA-1s for data that the user can&#8217;t see.</p>
+</li>
+<li>
+<p>Tags are only visible if their commits are visible to user through a
+non-tag reference.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Metadata (eg. OAuth credentials) is also stored in Git. Existing
+endpoints must refuse creating branches or changes that expose these
+metadata or allow changes to them.</p>
+</div>
+<div class="sect2">
+<h3 id="_indexing">Indexing</h3>
+<div class="paragraph">
+<p>Almost all data is stored as Git, but Git only supports fast lookup by
+SHA-1 or by ref (branch) name. Therefore Gerrit also has an indexing
+system (powered by Lucene by default) for other types of queries.
+There are 4 indices:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Project index - find repositories by name, parent project, etc.</p>
+</li>
+<li>
+<p>Account index - find accounts by name, email, etc.</p>
+</li>
+<li>
+<p>Group index - find groups by name, owner, description etc.</p>
+</li>
+<li>
+<p>Change index - find changes by file, status, modification date etc.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The base entities are characterized by SHA-1s. Storing the
+characterizing SHA-1s allows detection of stale index entries.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_plug_in_architecture">Plug-in architecture</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit has a plug-in architecture. Plugins can be installed by
+dropping them into $site_directory/plugins, or at runtime through
+plugin SSH commands, or the plugin REST API.</p>
+</div>
+<div class="sect2">
+<h3 id="_backend_plugins">Backend plugins</h3>
+<div class="paragraph">
+<p>At runtime, code can be loaded from a <code>.jar</code> file. This code can hook
+into predefined extension points. A common use of plugins is to have
+Gerrit interoperate with site-specific tools, such as CI-systems or
+issue trackers.</p>
+</div>
+<div class="paragraph">
+<p>Some backend plugins expose the JVM for scripting use (eg. Groovy,
+Scala), so plugins can be written without having to setup a Java
+development environment.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_frontend_plugins">Frontend plugins</h3>
+<div class="paragraph">
+<p>The UI can be extended using Frontend plugins. This is useful for
+changing the look &amp; feel of Gerrit, but it can also be used to surface
+data from systems that aren&#8217;t integrated with the Gerrit backend, eg.
+CI systems or code coverage providers.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_internationalization_and_localization">Internationalization and Localization</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>As a source code review system for open source projects, where the
+commonly preferred language for communication is typically English,
+Gerrit does not make internationalization or localization a priority.</p>
+</div>
+<div class="paragraph">
+<p>The majority of Gerrit&#8217;s users will be writing change descriptions
+and comments in English, and therefore an English user interface
+is usable by the target user base.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_accessibility_considerations">Accessibility Considerations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Whenever possible Gerrit displays raw text rather than image icons,
+so screen readers should still be able to provide useful information
+to blind persons accessing Gerrit sites.</p>
+</div>
+<div class="paragraph">
+<p>Standard HTML hyperlinks are used rather than HTML div or span tags
+with click listeners.  This provides two benefits to the end-user.
+The first benefit is that screen readers are optimized to locating
+standard hyperlink anchors and presenting them to the end-user as
+a navigation action.  The second benefit is that users can use
+the 'open in new tab/window' feature of their browser whenever
+they choose.</p>
+</div>
+<div class="paragraph">
+<p>When possible, Gerrit uses the ARIA properties on DOM widgets to
+provide hints to screen readers.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_browser_compatibility">Browser Compatibility</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit requires a JavaScript enabled browser.</p>
+</div>
+<div class="paragraph">
+<p>As Gerrit is a pure JavaScript application on the client side, with
+no server side rendering fallbacks, the browser must support modern
+JavaScript semantics in order to access the Gerrit web application.
+Dumb clients such as <code>lynx</code>, <code>wget</code>, <code>curl</code>, or even many search engine
+spiders are not able to access Gerrit content.</p>
+</div>
+<div class="paragraph">
+<p>All of the content stored within Gerrit is also available through
+other means, such as gitweb or the <code>git://</code> protocol. Any existing
+search engine crawlers can index the server-side HTML served by a code
+browser, and thus can index the majority of the changes which might
+appear in Gerrit. Therefore the lack of support for most search engine
+crawlers is a non-issue for most Gerrit deployments.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_product_integration">Product Integration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit optionally surfaces links to HTML pages in a code browser. The
+links are configurable, and Gerrit comes with a built-in code browser,
+called Gitiles.</p>
+</div>
+<div class="paragraph">
+<p>Gerrit integrates with some types of corporate single-sign-on (SSO)
+solutions, typically by having the SSO authentication be performed
+in a reverse proxy web server and then blindly trusting that all
+incoming connections have been authenticated by that reverse proxy.
+When configured to use this form of authentication, Gerrit does
+not integrate with OpenID providers.</p>
+</div>
+<div class="paragraph">
+<p>When installing Gerrit, administrators may optionally include an
+HTML header or footer snippet which may include user tracking code,
+such as that used by Google Analytics.  This is a per-instance
+configuration that must be done by hand, and is not supported
+out of the box.  Other site trackers instead of Google Analytics
+can be used, as the administrator can supply any HTML/JavaScript
+they choose.</p>
+</div>
+<div class="paragraph">
+<p>Gerrit does not integrate with any Google service, or any other
+services other than those listed above.</p>
+</div>
+<div class="paragraph">
+<p>Plugins (see above) can be used to drive product integrations from the
+Gerrit side. Products that support Gerrit explicitly can use the REST
+API or the SSH API to contact Gerrit.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_privacy_considerations">Privacy Considerations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit stores the following information per user account:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Full Name</p>
+</li>
+<li>
+<p>Preferred Email Address</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The full name and preferred email address fields are shown to any
+site visitor viewing a page containing a change uploaded by the
+account owner, or containing a published comment written by the
+account owner.</p>
+</div>
+<div class="paragraph">
+<p>Showing the full name and preferred email is approximately the same
+risk as the <code>From</code> header of an email posted to a public mailing
+list that maintains archives, and Gerrit treats these fields in
+much the same way that a mailing list archive might handle them.
+Users who don&#8217;t want to expose this information should either not
+participate in a Gerrit based online community, or open a new email
+address dedicated for this use.</p>
+</div>
+<div class="paragraph">
+<p>As the Gerrit UI data is only available through XSRF protected
+JSON-RPC calls, "screen-scraping" for email addresses is difficult,
+but not impossible.  It is unlikely a spammer will go through the
+effort required to code a custom scraping application necessary
+to cull email addresses from published Gerrit comments.  In most
+cases these same addresses would be more easily obtained from the
+project&#8217;s mailing list archives.</p>
+</div>
+<div class="paragraph">
+<p>The user&#8217;s name and email address is stored unencrypted in the
+<a href="config-accounts.html#all-users">All-Users</a> repository.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_spam_and_abuse_considerations">Spam and Abuse Considerations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There is no spam protection for the Git protocol upload path.
+Uploading a change successfully requires a pre-existing account, and a
+lot of up-front effort.</p>
+</div>
+<div class="paragraph">
+<p>Gerrit makes no attempt to detect spam changes or comments in the web
+UI. To post and publish a comment a client must sign in and then use
+the XSRF protected JSON-RPC interface to publish the draft on an
+existing change record.</p>
+</div>
+<div class="paragraph">
+<p>Absence of SPAM handling is based upon the idea that Gerrit caters to
+a niche audience, and will therefore be unattractive to spammers. In
+addition, it is not a factor for corporate, on-premise deployments.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_scalability">Scalability</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit supports the Git wire protocol, and an API (one API for HTTP,
+and one for SSH).</p>
+</div>
+<div class="paragraph">
+<p>The git wire protocol does a client/server negotiation to avoid
+sending too much data. This negotation occupies a CPU, so the number
+of concurrent push/fetch operations should be capped by the number of
+CPUs.</p>
+</div>
+<div class="paragraph">
+<p>Clients on slow network connections may be network bound rather than
+server side CPU bound, in which case a core may be effectively shared
+with another user. Possible core sharing due to network bottlenecks
+generally holds true for network connections running below 10 MiB/sec.</p>
+</div>
+<div class="paragraph">
+<p>Deployments for large, distributed companies can replicate Git data to
+read-only replicas to offload fetch traffic. The read-only replicas
+should also serve this data using Gerrit to ensure that permissions
+are obeyed.</p>
+</div>
+<div class="paragraph">
+<p>The API serves requests of varying costs. Requests that originate in
+the UI can block productivity, so care has been taken to optimize
+these for latency, using the following techniques:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Async calls: the UI becomes responsive before some UI elements
+finished loading</p>
+</li>
+<li>
+<p>Caching: metadata is stored in Git, which is relatively expensive to
+access. This is sped up by multiple caches. Metadata entities are
+stored in Git, and can therefore be seen as immutable values keyed
+by SHA-1, which is very amenable to caching. All SHA-1 keyed caches
+can be persisted on local disk.</p>
+<div class="literalblock">
+<div class="content">
+<pre>The size (memory, disk) of these caches should be adapted to the
+instance size (number of users, size and quantity of repositories)
+for optimal performance.</pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Git does not impose fundamental limits (eg. number of files per
+change) on data. To ensure stability, Gerrit configures a number of
+default limits for these.</p>
+</div>
+<div class="sect2">
+<h3 id="_scaling_team_size">Scaling team size</h3>
+<div class="paragraph">
+<p>A team of size N has N^2 possible interactions. As a result, features
+that expose interactions with activities of other team members has a
+quadratic cost in aggregate. The following features scale poorly with
+large team sizes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>the change screen shows conflicting changes by default. This data is
+cached, but updates to pending changes cause cache misses. For a
+single change, the amount of work is proportional to the number of
+pending changes, so in aggregate, the cost of this feature is
+quadratic in the team size.</p>
+</li>
+<li>
+<p>the change screen shows if a change is mergeable to the target
+branch. If the target branch moves quickly (large developer team),
+this causes cache misses. In aggregate, the cost of this feature is
+also quadratic.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Both features should be turned off for repositories that involve 1000s
+of developers.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_browser_performance">Browser performance</h3>
+
+</div>
+<div class="sect2">
+<h3 id="_real_life_numbers">Real life numbers</h3>
+<div class="paragraph">
+<p>Gerrit is designed for very large projects, both open source and
+proprietary commercial projects. For a single Gerrit process, the
+following limits are known to work:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. Observed maximums</caption>
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Parameter</th>
+<th class="tableblock halign-left valign-top">Maximum</th>
+<th class="tableblock halign-left valign-top">Deployment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Projects</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">50,000</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">gerrithub.io</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contributors</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">150,000</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">eclipse.org</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bytes/repo</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">100G</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Qualcomm internal</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Changes/repo</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">300k</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Qualcomm internal</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Revisions/Change</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">300</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Qualcomm internal</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Reviewers/Change</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">87</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Qualcomm internal</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Google runs a horizontally scaled deployment. We have seen the
+following per-JVM maximums:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 2. Observed maximums (googlesource.com)</caption>
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Parameter</th>
+<th class="tableblock halign-left valign-top">Maximum</th>
+<th class="tableblock halign-left valign-top">Deployment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Files/repo</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">500,000</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">chromium-review</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bytes/repo</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">12G</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">chromium-review</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Changes/repo</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">500k</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">chromium-review</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Revisions/Change</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1900</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">chromium-review</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Files/Change</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">10,000</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">android-review</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Comments/Change</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1,200</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">chromium-review</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_redundancy_reliability">Redundancy &amp; Reliability</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit is structured as a single JVM process, reading and writing to a
+single file system. If there are hardware failures in the machine
+running the JVM, or the storage holding the repositories, there is no
+recourse; on failure, errors will be returned to the client.</p>
+</div>
+<div class="paragraph">
+<p>Deployments needing more stringent uptime guarantees can use
+replication/multi-master setup, which ensures availability and
+geographical distribution, at the cost of slower write actions.</p>
+</div>
+<div class="sect2">
+<h3 id="_backups">Backups</h3>
+<div class="paragraph">
+<p>Using the standard replication plugin, Gerrit can be configured
+to replicate changes made to the local Git repositories over any
+standard Git transports. After the plugin is installed, remote
+destinations can be configured in <code>'$site_path'/etc/replication.conf</code>
+to send copies of all changes over SSH to other servers, or to the
+Amazon S3 blob storage service.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_logging_plan">Logging Plan</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit stores Apache style HTTPD logs, as well as ERROR/INFO messages
+from the Java logger, under <code>$site_dir/logs/</code>.</p>
+</div>
+<div class="paragraph">
+<p>Published comments contain a publication date, so users can judge
+when the comment was posted and decide if it was "recent" or not.
+Only the timestamp is stored in the database, the IP address of
+the comment author is not stored.</p>
+</div>
+<div class="paragraph">
+<p>Changes uploaded over the SSH daemon from <code>git push</code> have the
+standard Git reflog updated with the date and time that the upload
+occurred, and the Gerrit account identity of who did the upload.
+Changes submitted and merged into a branch also update the
+Git reflog.  These logs are available only to the Gerrit site
+administrator, and they are not replicated through the automatic
+replication noted earlier.  These logs are primarily recorded for an
+"oh s**t" moment where the administrator has to rewind data.  In most
+installations they are a waste of disk space.  Future versions of
+JGit may allow disabling these logs, and Gerrit may take advantage
+of that feature to stop writing these logs.</p>
+</div>
+<div class="paragraph">
+<p>A web server positioned in front of Gerrit (such as a reverse proxy)
+or the hosting servlet container may record access logs, and these
+logs may be mined for usage information.  This is outside of the
+scope of Gerrit.</p>
+</div>
+<hr style="
+  height: 2px;
+  color: silver;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+">
+<div class="paragraph">
+<p>Part of <a href="index.html">Gerrit Code Review</a></p>
+</div>
+<div style="
+  position:fixed;
+  top:0px;
+  right:0px;
+  text-align:
+  right;
+  padding-top:2px;
+  padding-right:0.5em;
+  padding-bottom:2px;">
+<input size="40"
+  style="line-height: 0.75em;font-size: 0.75em;"
+  id="docSearch"
+  type="text">
+<button style="
+  background:none!important;
+  border:none;
+  padding:0!important;
+  vertical-align:bottom;
+  font-family:'Open Sans','DejaVu Sans',sans-serif;
+  font-size:0.8em;
+  color:#1d4b8f;
+  text-decoration:none;"
+  type="button"
+  id="searchBox">
+  Search
+</button>
+
+<script type="text/javascript">
+var f = function() {
+  window.location = '../#/Documentation/q/' +
+    encodeURIComponent(document.getElementById("docSearch").value);
+}
+document.getElementById("searchBox").onclick = f;
+document.getElementById("docSearch").onkeypress = function(e) {
+  if (13 == (e.keyCode ? e.keyCode : e.which)) {
+    f();
+  }
+}
+</script>
+
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

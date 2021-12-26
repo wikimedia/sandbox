@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Gerrit Code Review - Logs</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Gerrit Code Review - Logs</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_time_format">Time format</a></li>
+<li><a href="#_logs">Logs</a>
+<ul class="sectlevel2">
+<li><a href="#_httpd_log">HTTPD Log</a></li>
+<li><a href="#_sshd_log">SSHD Log</a></li>
+<li><a href="#_error_log">Error Log</a></li>
+<li><a href="#_gc_log">GC Log</a></li>
+<li><a href="#_plugin_logs">Plugin Logs</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit writes log files in the <code>$site_path/logs/</code> folder tracking requests,
+background and plugin activity and errors. By default logs are written in
+<a href="config-gerrit.html#log.textLogging">text format</a>, optionally in
+<a href="config-gerrit.html#log.jsonLogging">JSON format</a>.
+By default log files are <a href="config-gerrit.html#log.compress">compressed</a>
+at server startup and then daily at 11pm and
+<a href="config-gerrit.html#log.rotate">rotated</a> every midnight.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_time_format">Time format</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For all timestamps the format <code>[yyyy-MM-dd&#8217;T&#8217;HH:mm:ss,SSSXXX]</code> is used.
+This format is both <a href="https://www.w3.org/TR/NOTE-datetime">ISO 8601</a> and
+<a href="https://tools.ietf.org/html/rfc3339">RFC3339</a> compatible.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_logs">Logs</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following logs can be written.</p>
+</div>
+<div class="sect2">
+<h3 id="_httpd_log">HTTPD Log</h3>
+<div class="paragraph">
+<p>The httpd log tracks HTTP requests processed by Gerrit&#8217;s http daemon
+and is written to <code>$site_path/logs/httpd_log</code>. Enabled or disabled via the
+<a href="config-gerrit.html#httpd.requestLog">httpd.requestLog</a> option.</p>
+</div>
+<div class="paragraph">
+<p>Format is an enhanced
+<a href="https://httpd.apache.org/docs/2.4/logs.html#combined">NCSA combined log</a>,
+if a log field is not present, a "-" is substituted:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>host</code>: The IP address of the HTTP client that made the HTTP resource request.
+If you are using a reverse proxy it depends on the proxy configuration if the
+proxy IP address or the client IP address is logged.</p>
+</li>
+<li>
+<p><code>[thread name]</code>: name of the Java thread executing the request.</p>
+</li>
+<li>
+<p><code>remote logname</code>:  the identifier used to
+link: <a href="https://tools.ietf.org/html/rfc1413">identify the client making the HTTP request</a>,
+Gerrit always logs a dash <code>-</code>.</p>
+</li>
+<li>
+<p><code>username</code>: the username used by the client for authentication. "-" for
+anonymous requests.</p>
+</li>
+<li>
+<p><code>[date:time]</code>: The date and time stamp of the HTTP request.
+The time that the request was received.</p>
+</li>
+<li>
+<p><code>request</code>: The request line from the client is given in double quotes.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>the HTTP method used by the client.</p>
+</li>
+<li>
+<p>the resource the client requested.</p>
+</li>
+<li>
+<p>the protocol/version used by the client.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>statuscode</code>: the <a href="https://tools.ietf.org/html/rfc2616#section-10">HTTP status code</a>
+that the server sent back to the client.</p>
+</li>
+<li>
+<p><code>response size</code>: the number of bytes of data transferred as part of the HTTP
+response, not including the HTTP header.</p>
+</li>
+<li>
+<p><code>latency</code>: response time in milliseconds.</p>
+</li>
+<li>
+<p><code>referer</code>: the <code>Referer</code> HTTP request header. This gives the site that
+the client reports having been referred from.</p>
+</li>
+<li>
+<p><code>client agent</code>: the client agent which sent the request.</p>
+</li>
+<li>
+<p><code>total_cpu</code>: total CPU time, CPU time in milliseconds to execute command.</p>
+</li>
+<li>
+<p><code>user_cpu</code>: user mode CPU time, CPU time in user mode in milliseconds to execute command.
+CPU time in kernel mode is <code>total_cpu - user_cpu</code>.</p>
+</li>
+<li>
+<p><code>memory</code>: memory allocated in bytes to execute command. -1 if the JVM does
+not support this metric.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code>12.34.56.78 [HTTP-4136374] - johndoe [28/Aug/2020:10:02:20 +0200] "GET /a/plugins/metrics-reporter-prometheus/metrics HTTP/1.1" 200 1247498 1900 - "Prometheus/2.13.1"</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_sshd_log">SSHD Log</h3>
+<div class="paragraph">
+<p>The sshd log tracks ssh requests processed by Gerrit&#8217;s ssh daemon
+and is written to <code>$site_path/logs/sshd_log</code>. Enabled or disabled
+via option <a href="config-gerrit.html#sshd.requestLog">sshd.requestLog</a>.</p>
+</div>
+<div class="paragraph">
+<p>Log format:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>[date time]</code>: The time that the request was received.</p>
+</li>
+<li>
+<p><code>sessionid</code>: hexadecimal session identifier, all requests of the
+same connection share the same sessionid. Gerrit does not support multiplexing multiple
+sessions on the same connection. Grep the log file using the sessionid as filter to
+get all requests from that session.</p>
+</li>
+<li>
+<p><code>[thread name]</code>: name of the Java thread executing the request.</p>
+</li>
+<li>
+<p><code>username</code>: the username used by the client for authentication.</p>
+</li>
+<li>
+<p><code>a/accountid</code>: identifier of the Gerrit account which is logged on.</p>
+</li>
+<li>
+<p><code>operation</code>: the operation being executed via ssh.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>LOGIN FROM &lt;host&gt;</code>: login and start new SSH session from the given host.</p>
+</li>
+<li>
+<p><code>AUTH FAILURE FROM &lt;host&gt; &lt;message&gt;</code>: failed authentication from given host and cause of failure.</p>
+</li>
+<li>
+<p><code>LOGOUT</code>: logout and terminate SSH session.</p>
+</li>
+<li>
+<p><code>git-upload-pack.&lt;projectname&gt;</code>: git fetch or clone command for given project.</p>
+</li>
+<li>
+<p><code>git-receive-pack.&lt;projectname&gt;</code>: git push command for given project.</p>
+</li>
+<li>
+<p>Gerrit ssh commands which may be logged in this field are documented
+<a href="cmd-index.html#_server">here</a>.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>wait</code>: command wait time, time in milliseconds the command waited for an execution thread.</p>
+</li>
+<li>
+<p><code>exec</code>: command execution time, time in milliseconds to execute the command.</p>
+</li>
+<li>
+<p><code>status</code>: status code. 0 means success, any other value is an error.</p>
+</li>
+<li>
+<p><code>total_cpu</code>: total CPU time, CPU time in milliseconds to execute command.</p>
+</li>
+<li>
+<p><code>user_cpu</code>: user mode CPU time, CPU time in user mode in milliseconds to execute command.
+CPU time in kernel mode is <code>total_cpu - user_cpu</code>.</p>
+</li>
+<li>
+<p><code>memory</code>: memory allocated in bytes to execute command. -1 if the JVM does
+not support this metric.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The <code>git-upload-pack</code> command provides the following additional fields after the <code>exec</code>
+and before the <code>status</code> field. All times are in milliseconds. Fields are -1 if not available
+when the upload-pack request returns an empty result since the client&#8217;s repository was up to date:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>time negotiating</code>: time for negotiating which objects need to be transferred.</p>
+</li>
+<li>
+<p><code>time searching for reuse</code>: time jgit searched for deltas which can be reused.
+That is the time spent matching existing representations against objects that
+will be transmitted, or that the client can be assumed to already have.</p>
+</li>
+<li>
+<p><code>time searching for sizes</code>: time jgit was searching for sizes of all objects that
+will enter the delta compression search window. The sizes need to
+be known to better match similar objects together and improve
+delta compression ratios.</p>
+</li>
+<li>
+<p><code>time counting</code>: time jgit spent enumerating the objects that need to
+be included in the output. This time includes any restarts that
+occur when a cached pack is selected for reuse.</p>
+</li>
+<li>
+<p><code>time compressing</code>: time jgit was compressing objects.  This is observed
+wall-clock time and does not accurately track CPU time used when
+multiple threads were used to perform the delta compression.</p>
+</li>
+<li>
+<p><code>time writing</code>: time jgit needed to write packfile, from start of
+header until end of trailer. The transfer speed can be
+approximated by dividing <code>total bytes</code> by this value.</p>
+</li>
+<li>
+<p><code>total time in UploadPack</code>: total time jgit spent in upload-pack.</p>
+</li>
+<li>
+<p><code>bitmap index misses</code>: number of misses when trying to use bitmap index,
+-1 means no bitmap index available. This is the count of objects that
+needed to be discovered through an object walk because they were not found
+in bitmap indices.</p>
+</li>
+<li>
+<p><code>total deltas</code>: total number of deltas transferred. This may be lower than the actual
+number of deltas if a cached pack was reused.</p>
+</li>
+<li>
+<p><code>total objects</code>: total number of objects transferred. This total includes
+the value of <code>total deltas</code>.</p>
+</li>
+<li>
+<p><code>total bytes</code>: total number of bytes transferred. This size includes the pack
+header, trailer, thin pack, and reused cached packs.</p>
+</li>
+<li>
+<p><code>client agent</code>: the client agent and version which sent the request.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Example: a CI system established a SSH connection, sent an upload-pack command (git fetch) and closed the connection:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code>[2020-08-28 11:00:01,391 +0200] 8a154cae [sshd-SshServer[570fc452]-nio2-thread-299] voter a/1000023 LOGIN FROM 12.34.56.78
+[2020-08-28 11:00:01,556 +0200] 8a154cae [SSH git-upload-pack /AP/ajs/jpaas-msg-svc.git (voter)] voter a/1000056 git-upload-pack./demo/project.git 0ms 115ms 92ms 1ms 0ms 6ms 0ms 0ms 7ms 3 10 26 2615 0 git/2.26.2
+[2020-08-28 11:00:01,583 +0200] 8a154cae [sshd-SshServer[570fc452]-nio2-thread-168] voter a/1000023 LOGOUT</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_error_log">Error Log</h3>
+<div class="paragraph">
+<p>The error log tracks errors and stack traces and is written to
+<code>$site_path/logs/error_log</code>.</p>
+</div>
+<div class="paragraph">
+<p>Log format:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>[date time]</code>: The time that the request was received.</p>
+</li>
+<li>
+<p><code>[thread name]</code>: : name of the Java thread executing the request.</p>
+</li>
+<li>
+<p><code>level</code>: log level (ERROR, WARN, INFO, DEBUG).</p>
+</li>
+<li>
+<p><code>logger</code>: name of the logger.</p>
+</li>
+<li>
+<p><code>message</code>: log message.</p>
+</li>
+<li>
+<p><code>stacktrace</code>: Java stacktrace when an execption was caught, usually spans multiple lines.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_gc_log">GC Log</h3>
+<div class="paragraph">
+<p>The gc log tracks git garbage collection running in a background thread
+if enabled and is written to <code>$site_path/logs/gc_log</code>.</p>
+</div>
+<div class="paragraph">
+<p>Log format:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>[date time]</code>: The time that the request was received.</p>
+</li>
+<li>
+<p><code>level</code>: log level (ERROR, WARN, INFO, DEBUG).</p>
+</li>
+<li>
+<p><code>message</code>: log message.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_plugin_logs">Plugin Logs</h3>
+<div class="paragraph">
+<p>Some plugins write their own log file.
+E.g. the replication plugin writes its log to <code>$site_path/logs/replication_log</code>.
+Refer to each plugin&#8217;s documentation for more details on their logs.</p>
+</div>
+<hr style="
+  height: 2px;
+  color: silver;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+">
+<div class="paragraph">
+<p>Part of <a href="index.html">Gerrit Code Review</a></p>
+</div>
+<div style="
+  position:fixed;
+  top:0px;
+  right:0px;
+  text-align:
+  right;
+  padding-top:2px;
+  padding-right:0.5em;
+  padding-bottom:2px;">
+<input size="40"
+  style="line-height: 0.75em;font-size: 0.75em;"
+  id="docSearch"
+  type="text">
+<button style="
+  background:none!important;
+  border:none;
+  padding:0!important;
+  vertical-align:bottom;
+  font-family:'Open Sans','DejaVu Sans',sans-serif;
+  font-size:0.8em;
+  color:#1d4b8f;
+  text-decoration:none;"
+  type="button"
+  id="searchBox">
+  Search
+</button>
+
+<script type="text/javascript">
+var f = function() {
+  window.location = '../#/Documentation/q/' +
+    encodeURIComponent(document.getElementById("docSearch").value);
+}
+document.getElementById("searchBox").onclick = f;
+document.getElementById("docSearch").onkeypress = function(e) {
+  if (13 == (e.keyCode ? e.keyCode : e.which)) {
+    f();
+  }
+}
+</script>
+
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>User Guide</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>User Guide</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#gerrit">What is Gerrit?</a></li>
+<li><a href="#tools">Tools</a></li>
+<li><a href="#clone">Clone Gerrit Project</a></li>
+<li><a href="#code-review">Code Review Workflow</a></li>
+<li><a href="#upload-change">Upload a Change</a></li>
+<li><a href="#review-change">Review Change</a></li>
+<li><a href="#upload-patch-set">Upload a new Patch Set</a></li>
+<li><a href="#multiple-features">Developing multiple Features in parallel</a></li>
+<li><a href="#watch">Watching Projects</a></li>
+<li><a href="#adding-reviewers">Adding Reviewers</a></li>
+<li><a href="#dashboards">Dashboards</a></li>
+<li><a href="#submit">Submit a Change</a></li>
+<li><a href="#rebase">Rebase a Change</a></li>
+<li><a href="#move">Move a Change</a></li>
+<li><a href="#restore">Abandon/Restore a Change</a></li>
+<li><a href="#cherrypickof">Cherry-Pick changes of a Change</a></li>
+<li><a href="#topics">Using Topics</a></li>
+<li><a href="#hashtags">Using Hashtags</a></li>
+<li><a href="#wip">Work-in-Progress Changes</a></li>
+<li><a href="#private-changes">Private Changes</a>
+<ul class="sectlevel2">
+<li><a href="#private-changes-pitfalls">Pitfalls</a></li>
+</ul>
+</li>
+<li><a href="#ignore">Ignoring Or Marking Changes As 'Reviewed'</a></li>
+<li><a href="#inline-edit">Inline Edit</a></li>
+<li><a href="#project-administration">Project Administration</a></li>
+<li><a href="#no-code-review">Working without Code Review</a></li>
+<li><a href="#user-refs">User Refs</a></li>
+<li><a href="#preferences">Preferences</a></li>
+<li><a href="#reply-by-email">Reply by Email</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This is a Gerrit guide that is dedicated to Gerrit end-users. It
+explains the standard Gerrit workflows and how a user can adapt Gerrit
+to personal preferences.</p>
+</div>
+<div class="paragraph">
+<p>It is expected that readers know about <a href="http://git-scm.com/" class="external" target="_blank" rel="noopener">Git</a>
+and that they are familiar with basic git commands and workflows.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="gerrit">What is Gerrit?</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit is a Git server that provides <a href="access-control.html">access
+control</a> for the hosted Git repositories and a web front-end for doing
+<a href="#code-review">code review</a>. Code review is a core functionality of
+Gerrit, but still it is optional and teams can decide to
+<a href="#no-code-review">work without code review</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="tools">Tools</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit uses the git protocol. This means in order to work with Gerrit
+you do <strong>not</strong> need to install any Gerrit client, but having a regular
+git client, such as the <a href="http://git-scm.com/" class="external" target="_blank" rel="noopener">git command line</a> or
+<a href="http://eclipse.org/egit/" class="external" target="_blank" rel="noopener">EGit</a> in Eclipse, is sufficient.</p>
+</div>
+<div class="paragraph">
+<p>Still there are some client-side tools for Gerrit, which can be used
+optionally:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://eclipse.org/mylyn/" class="external" target="_blank" rel="noopener">Mylyn Gerrit Connector</a>: Gerrit
+integration with Mylyn</p>
+</li>
+<li>
+<p><a href="https://github.com/uwolfer/gerrit-intellij-plugin" class="external" target="_blank" rel="noopener">Gerrit
+IntelliJ Plugin</a>: Gerrit integration with the
+<a href="http://www.jetbrains.com/idea/" class="external" target="_blank" rel="noopener">IntelliJ Platform</a></p>
+</li>
+<li>
+<p><a href="https://play.google.com/store/apps/details?id=com.jbirdvegas.mgerrit" class="external" target="_blank" rel="noopener">
+mGerrit</a>: Android client for Gerrit</p>
+</li>
+<li>
+<p><a href="https://github.com/stackforge/gertty" class="external" target="_blank" rel="noopener">Gertty</a>: Console-based
+interface for Gerrit</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="clone">Clone Gerrit Project</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Cloning a Gerrit project is done the same way as cloning any other git
+repository by using the <code>git clone</code> command.</p>
+</div>
+<div class="listingblock">
+<div class="title">Clone Gerrit Project</div>
+<div class="content">
+<pre>  $ git clone ssh://gerrithost:29418/RecipeBook.git RecipeBook
+  Cloning into RecipeBook...</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The URL for cloning the project can be found in the Gerrit web UI
+under <code>Projects</code> &gt; <code>List</code> &gt; &lt;project-name&gt; &gt; <code>General</code>.</p>
+</div>
+<div class="paragraph">
+<p>For git operations Gerrit supports the <a href="user-upload.html#ssh">SSH</a>
+and the <a href="user-upload.html#http">HTTP/HTTPS</a> protocols.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+To use SSH you may need to <a href="user-upload.html#ssh">configure your SSH public
+key in your <code>Settings</code></a>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="code-review">Code Review Workflow</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>With Gerrit <em>Code Review</em> means to <a href="#review-change">review</a> every
+commit <strong>before</strong> it is accepted into the code base. The author of a code
+modification <a href="user-upload.html#push_create">uploads a commit</a> as a
+change to Gerrit. In Gerrit each change is stored in a
+<a href="#change-ref">staging area</a> where it can be checked and reviewed.
+Only when it is approved and submitted it gets applied to the code
+base. If there is feedback on a change, the author can improve the code
+modification by <a href="#upload-patch-set">amending the commit and
+uploading the new commit as a new patch set</a>. This way a change is
+improved iteratively and it is applied to the code base only when is
+ready.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="upload-change">Upload a Change</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Uploading a change to Gerrit is done by pushing a commit to Gerrit. The
+commit must be pushed to a ref in the <code>refs/for/</code> namespace which
+defines the target branch: <code>refs/for/&lt;target-branch&gt;</code>.
+The magic <code>refs/for/</code> prefix allows Gerrit to differentiate commits
+that are pushed for review from commits that are pushed directly into
+the repository, bypassing code review. For the target branch it is
+sufficient to specify the short name, e.g. <code>master</code>, but you can also
+specify the fully qualified branch name, e.g. <code>refs/heads/master</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">Push for Code Review</div>
+<div class="content">
+<pre>  $ git commit
+  $ git push origin HEAD:refs/for/master
+
+  // this is the same as:
+  $ git commit
+  $ git push origin HEAD:refs/for/refs/heads/master</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Push with bypassing Code Review</div>
+<div class="content">
+<pre>  $ git commit
+  $ git push origin HEAD:master
+
+  // this is the same as:
+  $ git commit
+  $ git push origin HEAD:refs/heads/master</pre>
+</div>
+</div>
+<div id="push-fails" class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If pushing to Gerrit fails consult the Gerrit documentation that
+explains the <a href="error-messages.html">error messages</a>.
+</td>
+</tr>
+</table>
+</div>
+<div id="change-ref" class="paragraph">
+<p>When a commit is pushed for review, Gerrit stores it in a staging area
+which is a branch in the special <code>refs/changes/</code> namespace. Understanding
+the format of this ref is not required for working with Gerrit, but it
+is explained below.</p>
+</div>
+<div class="paragraph">
+<p>A change ref has the format <code>refs/changes/X/Y/Z</code> where <code>X</code> is the last
+two digits of the change number, <code>Y</code> is the entire change number, and <code>Z</code>
+is the patch set. For example, if the change number is
+<a href="https://gerrit-review.googlesource.com/c/gerrit/+/263270" class="external" target="_blank" rel="noopener">263270</a>,
+the ref would be <code>refs/changes/70/263270/2</code> for the second patch set.</p>
+</div>
+<div id="fetch-change" class="paragraph">
+<p>Using the change ref git clients can fetch the corresponding commit,
+e.g. for local verification.</p>
+</div>
+<div class="listingblock">
+<div class="title">Fetch Change</div>
+<div class="content">
+<pre>  $ git fetch https://gerrithost/myProject refs/changes/74/67374/2 &amp;&amp; git checkout FETCH_HEAD</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The fetch command can be copied from the
+<a href="user-review-ui.html#download">download commands</a> in the change
+screen.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The <code>refs/for/</code> prefix is used to map the Gerrit concept of
+"Pushing for Review" to the git protocol. For the git client it looks
+like every push goes to the same branch, e.g. <code>refs/for/master</code> but in
+fact for each commit that is pushed to this ref Gerrit creates a new
+branch under the <code>refs/changes/</code> namespace. In addition Gerrit creates
+an open change.</p>
+</div>
+<div id="change" class="paragraph">
+<p>A change consists of a <a href="user-changeid.html">Change-Id</a>, meta data
+(owner, project, target branch etc.), one or more patch sets, comments
+and votes. A patch set is a git commit. Each patch set in a change
+represents a new version of the change and replaces the previous patch
+set. Only the latest patch set is relevant. This means all failed
+iterations of a change will never be applied to the target branch, but
+only the last patch set that is approved is integrated.</p>
+</div>
+<div id="change-id" class="paragraph">
+<p>The Change-Id is important for Gerrit to know whether a commit that is
+pushed for code review should create a new change or whether it should
+create a new patch set for an existing change.</p>
+</div>
+<div class="paragraph">
+<p>The Change-Id is a SHA-1 that is prefixed with an uppercase <code>I</code>. It is
+specified as footer in the commit message (last paragraph):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  Improve foo widget by attaching a bar.
+
+  We want a bar, because it improves the foo by providing more
+  wizbangery to the dowhatimeanery.
+
+  Bug: #42
+  Change-Id: Ic8aaa0728a43936cd4c6e1ed590e01ba8f0fbf5b
+  Signed-off-by: A. U. Thor &lt;author@example.com&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If a commit that has a Change-Id in its commit message is pushed for
+review, Gerrit checks if a change with this Change-Id already exists
+for this project and target branch, and if yes, Gerrit creates a new
+patch set for this change. If not, a new change with the given
+Change-Id is created.</p>
+</div>
+<div class="paragraph">
+<p>If a commit without Change-Id is pushed for review, Gerrit creates a
+new change and generates a Change-Id for it. Since in this case the
+Change-Id is not included in the commit message, it must be manually
+inserted when a new patch set should be uploaded. Most projects already
+<a href="project-configuration.html#require-change-id">require a Change-Id</a>
+when pushing the very first patch set. This reduces the risk of
+accidentally creating a new change instead of uploading a new patch
+set. Any push without Change-Id then fails with
+<a href="error-missing-changeid.html">missing Change-Id in commit message
+footer</a>.</p>
+</div>
+<div class="paragraph">
+<p>Amending and rebasing a commit preserves the Change-Id so that the new
+commit automatically becomes a new patch set of the existing change,
+when it is pushed for review.</p>
+</div>
+<div class="listingblock">
+<div class="title">Push new Patch Set</div>
+<div class="content">
+<pre>  $ git commit --amend
+  $ git push origin HEAD:refs/for/master</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Change-Ids are unique for a branch of a project. E.g. commits that fix
+the same issue in different branches should have the same Change-Id,
+which happens automatically if a commit is cherry-picked to another
+branch. This way you can <a href="user-search.html">search</a> by the Change-Id
+in the Gerrit web UI to find a fix in all branches.</p>
+</div>
+<div class="paragraph">
+<p>Change-Ids can be created automatically by installing the <code>commit-msg</code>
+hook as described in the <a href="user-changeid.html#creation">Change-Id
+documentation</a>.</p>
+</div>
+<div class="paragraph">
+<p>Instead of manually installing the <code>commit-msg</code> hook for each git
+repository, you can copy it into the
+<a href="http://git-scm.com/docs/git-init#_template_directory" class="external" target="_blank" rel="noopener">git template</a>. Then it is automatically copied to every newly cloned
+repository.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="review-change">Review Change</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After <a href="#upload-change">uploading a change for review</a> reviewers can
+inspect it via the Gerrit web UI. Reviewers can see the code delta and
+<a href="user-review-ui.html#inline-comments">comment directly in the code</a>
+on code blocks or lines. They can also <a href="user-review-ui.html#reply">
+post summary comments and vote on review labels</a>. The
+<a href="user-review-ui.html">documentation of the review UI</a> explains the
+screens and controls for doing code reviews.</p>
+</div>
+<div class="paragraph">
+<p>There are several options to control how patch diffs should be
+rendered. Users can configure their preferences in the
+<a href="user-review-ui.html#diff-preferences">diff preferences</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="upload-patch-set">Upload a new Patch Set</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If there is feedback from code review and a change should be improved a
+new patch set with the reworked code should be uploaded.</p>
+</div>
+<div class="paragraph">
+<p>This is done by amending the commit of the last patch set. If needed
+this commit can be fetched from Gerrit by using the fetch command from
+the <a href="user-review-ui.html#download">download commands</a> in the change
+screen.</p>
+</div>
+<div class="paragraph">
+<p>It is important that the commit message contains the
+<a href="user-changeid.html">Change-Id</a> of the change that should be updated
+as a footer (last paragraph). Normally the commit message already
+contains the correct Change-Id and the Change-Id is preserved when the
+commit is amended.</p>
+</div>
+<div class="listingblock">
+<div class="title">Push Patch Set</div>
+<div class="content">
+<pre>  // fetch and checkout the change
+  // (checkout command copied from change screen)
+  $ git fetch https://gerrithost/myProject refs/changes/74/67374/2 &amp;&amp; git checkout FETCH_HEAD
+
+  // rework the change
+  $ git add &lt;path-of-reworked-file&gt;
+  ...
+
+  // amend commit
+  $ git commit --amend
+
+  // push patch set
+  $ git push origin HEAD:refs/for/master</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Never amend a commit that is already part of a central branch.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Pushing a new patch set triggers email notification to the reviewers.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="multiple-features">Developing multiple Features in parallel</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Code review takes time, which can be used by the change author to
+implement other features. Each feature should be implemented in its own
+local feature branch that is based on the current HEAD of the target
+branch. This way there is no dependency to open changes and new
+features can be reviewed and applied independently. If wanted, it is
+also possible to base a new feature on an open change. This will create
+a dependency between the changes in Gerrit and each change can only be
+applied if all its predecessor are applied as well. Dependencies
+between changes can be seen from the
+<a href="user-review-ui.html#related-changes-tab">Related Changes</a> tab on
+the change screen.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="watch">Watching Projects</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To get to know about new changes you can <a href="user-notify.html#user">
+watch the projects</a> that you are interested in. For watched projects
+Gerrit sends you email notifications when a change is uploaded or
+modified. You can decide on which events you want to be notified and
+you can filter the notifications by using <a href="user-search.html">change
+search expressions</a>. For example 'branch:master file:^.*\.txt$' would
+send you email notifications only for changes in the master branch that
+touch a 'txt' file.</p>
+</div>
+<div class="paragraph">
+<p>It is common that the members of a project team watch their own
+projects and then pick the changes that are interesting to them for
+review.</p>
+</div>
+<div class="paragraph">
+<p>Project owners may also configure
+<a href="intro-project-owner.html#notifications">notifications on
+project-level</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="adding-reviewers">Adding Reviewers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In the <a href="user-review-ui.html#reviewers">change screen</a> reviewers can
+be added explicitly to a change. The added reviewer will then be
+notified by email about the review request.</p>
+</div>
+<div class="paragraph">
+<p>Mainly this functionality is used to request the review of specific
+person who is known to be an expert in the modified code or who is a
+stakeholder of the implemented feature. Normally it is not needed to
+explicitly add reviewers on every change, but you rather rely on the
+project team to watch their project and to process the incoming changes
+by importance, interest, time etc.</p>
+</div>
+<div class="paragraph">
+<p>There are also <a href="intro-project-owner.html#reviewers">plugins which
+can add reviewers automatically</a> (e.g. by configuration or based on git
+blame annotations). If this functionality is required it should be
+discussed with the project owners and the Gerrit administrators.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="dashboards">Dashboards</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit supports a wide range of <a href="user-search.html#search-operators">
+query operators</a> to search for changes by different criteria, e.g. by
+status, change owner, votes etc.</p>
+</div>
+<div class="paragraph">
+<p>The page that shows the results of a change query has the change query
+contained in its URL. This means you can bookmark this URL in your
+browser to save the change query. This way it can be easily re-executed
+later.</p>
+</div>
+<div class="paragraph">
+<p>Several change queries can be also combined into a dashboard. A
+dashboard is a screen in Gerrit that presents the results of several
+change queries in different sections, each section having a descriptive
+title.</p>
+</div>
+<div class="paragraph">
+<p>A default dashboard is available under <code>My</code> &gt; <code>Changes</code>. It has
+sections to list outgoing reviews, incoming reviews and recently closed
+changes.</p>
+</div>
+<div class="paragraph">
+<p>Users can also define <a href="user-dashboards.html#custom-dashboards">
+custom dashboards</a>. Dashboards can be bookmarked in a browser so that
+they can be re-executed later.</p>
+</div>
+<div class="paragraph">
+<p>It is also possible to <a href="#my-menu">customize the My menu</a> and add
+menu entries for custom queries or dashboards to it.</p>
+</div>
+<div class="paragraph">
+<p>Dashboards are very useful to define own views on changes, e.g. you can
+have different dashboards for own contributions, for doing reviews or
+for different sets of projects.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+You can use the <a href="user-search.html#limit">limit</a> and
+<a href="user-search.html#age">age</a> query operators to limit the result set
+in a dashboard section. Clicking on the section title executes the
+change query without the <code>limit</code> and <code>age</code> operator so that you can
+inspect the full result set.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Project owners can also define shared
+<a href="user-dashboards.html#project-dashboards">dashboards on
+project-level</a>. The project dashboards can be seen in the web UI under
+<code>Projects</code> &gt; <code>List</code> &gt; &lt;project-name&gt; &gt; <code>Dashboards</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="submit">Submit a Change</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Submitting a change means that the code modifications of the current
+patch set are applied to the target branch. Submit requires the
+<a href="access-control.html#category_submit">Submit</a> access right and is
+done on the change screen by clicking on the
+<a href="user-review-ui.html#submit">Submit</a> button.</p>
+</div>
+<div class="paragraph">
+<p>In order to be submittable changes must first be approved by
+<a href="user-review-ui.html#vote">voting on the review labels</a>. By default
+a change can only be submitted if it has a vote with the highest value
+on each review label and no vote with the lowest value (veto vote).
+Projects can configure <a href="intro-project-owner.html#labels">custom
+labels</a> and <a href="intro-project-owner.html#submit-rules">custom submit
+rules</a> to control when a change becomes submittable.</p>
+</div>
+<div class="paragraph">
+<p>How the code modification is applied to the target branch when a change
+is submitted is controlled by the
+<a href="config-project-config.html#submit-type">submit type</a> which can be
+<a href="intro-project-owner.html#submit-type">configured on project-level</a>.</p>
+</div>
+<div class="paragraph">
+<p>Submitting a change may fail with conflicts. In this case you need to
+<a href="#rebase">rebase</a> the change locally, resolve the conflicts and
+upload the commit with the conflict resolution as new patch set.</p>
+</div>
+<div class="paragraph">
+<p>If a change cannot be merged due to path conflicts this is highlighted
+on the change screen by a bold red <code>Cannot Merge</code> label.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="rebase">Rebase a Change</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>While a change is in review the HEAD of the target branch can evolve.
+In this case the change can be rebased onto the new HEAD of the target
+branch. When there are no conflicts the rebase can be done directly
+from the <a href="user-review-ui.html#rebase">change screen</a>, otherwise it
+must be done locally.</p>
+</div>
+<div class="listingblock">
+<div class="title">Rebase a Change locally</div>
+<div class="content">
+<pre>  // update the remote tracking branches
+  $ git fetch
+
+  // fetch and checkout the change
+  // (checkout command copied from change screen)
+  $ git fetch https://gerrithost/myProject refs/changes/74/67374/2 &amp;&amp; git checkout FETCH_HEAD
+
+  // do the rebase
+  $ git rebase origin/master
+
+  // resolve conflicts if needed and stage the conflict resolution
+  ...
+  $ git add &lt;path-of-file-with-conflicts-resolved&gt;
+
+  // continue the rebase
+  $ git rebase --continue
+
+  // push the commit with the conflict resolution as new patch set
+  $ git push origin HEAD:refs/for/master</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Doing a manual rebase is only necessary when there are conflicts that
+cannot be resolved by Gerrit. If manual conflict resolution is needed
+also depends on the <a href="intro-project-owner.html#submit-type">submit
+type</a> that is configured for the project.</p>
+</div>
+<div class="paragraph">
+<p>Generally changes shouldn&#8217;t be rebased without reason as it
+increases the number of patch sets and creates noise with
+notifications. However if a change is in review for a long time it may
+make sense to rebase it from time to time, so that reviewers can see
+the delta against the current HEAD of the target branch. It also shows
+that there is still an interest in this change.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Never rebase commits that are already part of a central branch.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="move">Move a Change</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Changes can be <a href="rest-api-changes.html#move-change">moved</a> to a desired
+destination branch in the same project. This is useful in cases where
+development activity switches from one branch to another and there is a
+need to move open changes on the inactive branch to the new active one.
+Another useful case is to move changes from a newer branch back to an older
+bugfix branch where an issue first appeared.</p>
+</div>
+<div class="paragraph">
+<p>Users can move a change only if they have <a href="access-control.html#category_abandon">
+abandon permission</a> on the change and <a href="access-control.html#category_push">
+push permission</a> on the destination branch.</p>
+</div>
+<div class="paragraph">
+<p>The move operation will not update the change&#8217;s parent and users will have
+to <a href="#rebase">rebase</a> the change. Also, merge commits cannot be moved.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="restore">Abandon/Restore a Change</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Sometimes during code review a change is found to be bad and it should
+be given up. In this case the change can be
+<a href="user-review-ui.html#abandon">abandoned</a> so that it doesn&#8217;t appear
+in list of open changes anymore.</p>
+</div>
+<div class="paragraph">
+<p>Abandoned changes can be <a href="user-review-ui.html#restore">restored</a> if
+later they are needed again.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="cherrypickof">Cherry-Pick changes of a Change</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When a change is created/updated using the 'cherry-pick' functionalty,
+the original change and patchset details are recorded in the Change&#8217;s
+cherrypick field. This field cannot be set or updated by the user in
+any way. It is set automatically after the cherry-pick operation completes
+successfully.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="topics">Using Topics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Changes can be grouped by topics. This is useful because it allows you
+to easily find related changes by using the
+<a href="user-search.html#topic">topic search operator</a>. Also on the change
+screen <a href="user-review-ui.html#same-topic">changes with the same topic</a>
+are displayed so that you can easily navigate between them.</p>
+</div>
+<div class="paragraph">
+<p>Often changes that together implement a feature or a user story are
+group by a topic.</p>
+</div>
+<div class="paragraph">
+<p>Assigning a topic to a change can be done in the
+<a href="user-review-ui.html#project-branch-topic">change screen</a>.</p>
+</div>
+<div class="paragraph">
+<p>It is also possible to <a href="user-upload.html#topic">set a topic on
+push</a>, either by appending <code>%topic=&#8230;&#8203;</code> to the ref name or through
+the use of the command line flag <code>--push-option</code>, aliased to <code>-o</code>,
+followed by <code>topic=&#8230;&#8203;</code>.</p>
+</div>
+<div class="paragraph">
+<p>Gerrit may be <a href="config-gerrit.html#change.submitWholeTopic">configured</a> to
+submit all changes in a topic together with a single click, even when topics
+span multiple projects.</p>
+</div>
+<div class="listingblock">
+<div class="title">Set Topic on Push</div>
+<div class="content">
+<pre>  $ git push origin HEAD:refs/for/master%topic=multi-master
+
+  // this is the same as:
+  $ git push origin HEAD:refs/heads/master -o topic=multi-master</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more information about using topics, see the user guide:
+<a href="cross-repository-changes.html">Submitting Changes Across Repositories by using Topics</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="hashtags">Using Hashtags</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Hashtags are freeform strings associated with a change, like on social media
+platforms. In Gerrit, you explicitly associate hashtags with changes using a
+dedicated area of the UI; they are not parsed from commit messages or comments.</p>
+</div>
+<div class="paragraph">
+<p>Similar to topics, hashtags can be used to group related changes together, and
+to search using the <a href="user-search.html#hashtag"><code>hashtag:</code></a> operator. Unlike
+topics, a change can have multiple hashtags, and they are only used for
+informational grouping; changes with the same hashtags are not necessarily
+submitted together.</p>
+</div>
+<div class="listingblock">
+<div class="title">Set Hashtag on Push</div>
+<div class="content">
+<pre>  $ git push origin HEAD:refs/for/master%t=stable-bugfix
+
+  // this is the same as:
+  $ git push origin HEAD:refs/heads/master -o t=stable-bugfix</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="wip">Work-in-Progress Changes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Work-in-Progress (WIP) changes are visible to anyone, but do not notify or
+require an action from a reviewer.</p>
+</div>
+<div class="paragraph">
+<p>Specifically, when you mark a change as Work-in-Progress:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Reviewers are not notified for most operations, such as adding or removing,
+posting comments, and so on. See the REST API documentation
+<a href="rest-api-changes.html#set-review-notifications">tables</a> for more
+information.</p>
+</li>
+<li>
+<p>The change does not show in reviewers' dashboards.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>WIP changes are useful when:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>You have implemented only part of a change, but want to push your change
+to the server to run tests or perform other actions before requesting
+reviewer feedback.</p>
+</li>
+<li>
+<p>During a review, you realize you need to rework your change, and you
+want to stop notifying reviewers of the change until you finish your
+update.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To set the status of a change to Work-in-Progress, you can use either
+the command line or the user interface. To use the command line, append
+<code>%wip</code> to your push request.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  $ git push origin HEAD:refs/for/master%wip</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Alternatively, click <strong>WIP</strong> from the <strong>More</strong> menu on the Change screen.
+The Change screen updates with a yellow header, indicating that
+the change is in a Work-in-Progress state.</p>
+</div>
+<div class="paragraph">
+<p>To mark the change as ready for review, append <code>%ready</code> to your push
+request.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  $ git push origin HEAD:refs/for/master%ready</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>There are two options for marking the change ready for review from the Change
+screen:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Click <strong>Start Review</strong> (the primary action <strong>Reply</strong> is renamed when in WIP
+state).</p>
+<div class="paragraph">
+<p>This will open the reply-modal and allow you to add reviewers and/or CC
+before you start review.</p>
+</div>
+</li>
+<li>
+<p>Click button <strong>Mark As Active</strong>.</p>
+<div class="paragraph">
+<p>This will only change the state from WIP to ready, without opening the
+reply-modal.</p>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Change owners, project owners, site administrators and members of a group that
+was granted <a href="access-control.html#category_toggle_work_in_progress_state">
+Toggle Work In Progress state</a> permission can mark changes as <code>work-in-progress</code>
+and <code>ready</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="private-changes">Private Changes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Private changes are changes that are only visible to their owners, reviewers
+and users with the <a href="access-control.html#category_view_private_changes">
+View Private Changes</a> global capability. Private changes are useful in a number
+of cases:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>You want a set of collaborators to review the change before formal review
+starts. By creating a Private change and adding only a selected few as
+reviewers you can control who can see the change and get a first opinion
+before opening up for all reviewers.</p>
+</li>
+<li>
+<p>You want to check what the change looks like before formal review starts.
+By marking the change private without reviewers, nobody can
+prematurely comment on your changes.</p>
+</li>
+<li>
+<p>You want to use Gerrit to sync data between different devices. By
+creating a private throwaway change without reviewers, you can push
+from one device, and fetch to another device.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Do <strong>not</strong> use private changes for making security fixes (see
+<a href="#private-changes-pitfalls">pitfalls</a> below). How to make security
+fixes is explained <a href="#security-fixes">below</a>.</p>
+</div>
+<div class="paragraph">
+<p>To create a private change, you push it with the <code>private</code> option.</p>
+</div>
+<div class="listingblock">
+<div class="title">Push a private change</div>
+<div class="content">
+<pre>  $ git commit
+  $ git push origin HEAD:refs/for/master%private</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The change will remain private on subsequent pushes until you specify
+the <code>remove-private</code> option. Alternatively, the web UI provides buttons
+to mark a change private and non-private again.</p>
+</div>
+<div class="paragraph">
+<p>When pushing a private change with a commit that is authored by another
+user, the other user will not be automatically added as a reviewer and
+must be explicitly added.</p>
+</div>
+<div class="paragraph">
+<p>For CI systems that must verify private changes, a special permission
+can be granted
+(<a href="access-control.html#category_view_private_changes">View Private Changes</a>).
+In that case, care should be taken to prevent the CI system from
+exposing secret details.</p>
+</div>
+<div class="sect2">
+<h3 id="private-changes-pitfalls">Pitfalls</h3>
+<div class="paragraph">
+<p>If private changes are used, be aware of the following pitfalls:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If a private change gets merged the corresponding commit gets visible
+for all users that can access the target branch and the private flag
+from the change is automatically removed. This makes private changes
+a bad choice for security fixes, as the security fix will be
+accessible as soon as the change was merged, but for security issues
+you want to keep an embargo until new releases have been made
+available.</p>
+</li>
+<li>
+<p>If you push a non-private change on top of a private change the
+commit of the private change gets implicitly visible through the
+parent relationship of the follow-up change.</p>
+</li>
+<li>
+<p>If you have a series of private changes and share one with reviewers,
+the reviewers can also see the commits of the predecessor private
+changes through the commit parent relationship.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ignore">Ignoring Or Marking Changes As 'Reviewed'</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Changes can be ignored, which means they will not appear in the 'Incoming
+Reviews' dashboard and any related email notifications will be suppressed.
+This can be useful when you are added as a reviewer to a change on which
+you do not actively participate in the review, but do not want to completely
+remove yourself.</p>
+</div>
+<div class="paragraph">
+<p>Alternatively, rather than completely ignoring the change, it can be marked
+as 'Reviewed'. Marking a change as 'Reviewed' means it will not be highlighted
+in the dashboard, until a new patch set is uploaded.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="inline-edit">Inline Edit</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>It is possible to <a href="user-inline-edit.html#editing-change">edit
+changes inline</a> directly in the web UI. This is useful to make small
+corrections immediately and publish them as a new patch set.</p>
+</div>
+<div class="paragraph">
+<p>It is also possible to <a href="user-inline-edit.html#create-change">create
+new changes inline</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="project-administration">Project Administration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Every project has a <a href="intro-project-owner.html#project-owner">project
+owner</a> that administrates the project. Project administration includes
+the configuration of the project
+<a href="intro-project-owner.html#access-rights">access rights</a>, but project
+owners have many more possibilities to customize the workflows for a
+project which are described in the <a href="intro-project-owner.html">
+project owner guide</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="no-code-review">Working without Code Review</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Doing code reviews with Gerrit is optional and you can use Gerrit
+without code review as a pure Git server.</p>
+</div>
+<div class="listingblock">
+<div class="title">Push with bypassing Code Review</div>
+<div class="content">
+<pre>  $ git commit
+  $ git push origin HEAD:master
+
+  // this is the same as:
+  $ git commit
+  $ git push origin HEAD:refs/heads/master</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Bypassing code review must be enabled in the project access rights. The
+project owner must allow it by assigning the
+<a href="access-control.html#category_push_direct">Push</a> access right on the
+target branch (<code>refs/heads/&lt;branch-name&gt;</code>).
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If you bypass code review you always need to merge/rebase manually if
+the tip of the destination branch has moved. Please keep this in mind
+if you choose to not work with code review because you think it&#8217;s
+easier to avoid the additional complexity of the review workflow; it
+might actually not be easier.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The project owner may enable <a href="user-upload.html#auto_merge">
+auto-merge on push</a> to benefit from the automatic merge/rebase on
+server side while pushing directly into the repository.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="user-refs">User Refs</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>User configuration data such as <a href="#preferences">preferences</a> is
+stored in the <code>All-Users</code> project under a per-user ref.  The user&#8217;s
+ref is based on the user&#8217;s account id which is an integer.  The user
+refs are sharded by the last two digits (<code>nn</code>) in the refname,
+leading to refs of the format <code>refs/users/nn/accountid</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="preferences">Preferences</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are several options to control the rendering in the Gerrit web UI.
+Users can configure their preferences under <code>Settings</code> &gt; <code>Preferences</code>.
+The user&#8217;s preferences are stored in a <code>git config</code> style file named
+<code>preferences.config</code> under the <a href="#user-refs">user&#8217;s ref</a> in the
+<code>All-Users</code> project.</p>
+</div>
+<div class="paragraph">
+<p>The following preferences can be configured:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a id="page-size"></a><code>Maximum Page Size</code>:</p>
+<div class="paragraph">
+<p>The maximum number of entries that are shown on one page, e.g. used
+when paging through changes, projects, branches or groups.</p>
+</div>
+</li>
+<li>
+<p><a id="date-time-format"></a><code>Date/Time Format</code>:</p>
+<div class="paragraph">
+<p>The format that should be used to render dates and timestamps.</p>
+</div>
+</li>
+<li>
+<p><a id="email-notifications"></a><code>Email Notifications</code>:</p>
+<div class="paragraph">
+<p>This setting controls the email notifications.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>Enabled</code>:</p>
+<div class="paragraph">
+<p>Email notifications are enabled.</p>
+</div>
+</li>
+<li>
+<p><a id="cc-me"></a><code>Every comment</code>:</p>
+<div class="paragraph">
+<p>Email notifications are enabled and you get notified by email as CC
+on comments that you write yourself.</p>
+</div>
+</li>
+<li>
+<p><code>Disabled</code>:</p>
+<div class="paragraph">
+<p>Email notifications are disabled.</p>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><a id="email-format"></a><code>Email Format</code>:</p>
+<div class="paragraph">
+<p>This setting controls the email format Gerrit sends. Note that this
+setting has no effect if the administrator has disabled HTML emails
+for the Gerrit instance.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>Plaintext Only</code>:</p>
+<div class="paragraph">
+<p>Email notifications contain only plaintext content.</p>
+</div>
+</li>
+<li>
+<p><code>HTML and Plaintext</code>:</p>
+<div class="paragraph">
+<p>Email notifications contain both HTML and plaintext content.</p>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><a id="default-base-for-merges"></a><code>Default Base For Merges</code>:</p>
+<div class="paragraph">
+<p>This setting controls which base should be pre-selected in the
+<code>Diff Against</code> drop-down list when the change screen is opened for a
+merge commit.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>Auto Merge</code>:</p>
+<div class="paragraph">
+<p>Pre-selects <code>Auto Merge</code> in the <code>Diff Against</code> drop-down list when the
+change screen is opened for a merge commit.</p>
+</div>
+</li>
+<li>
+<p><code>First Parent</code>:</p>
+<div class="paragraph">
+<p>Pre-selects <code>Parent 1</code> in the <code>Diff Against</code> drop-down list when the
+change screen is opened for a merge commit.</p>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><a id="diff-view"></a><code>Diff View</code>:</p>
+<div class="paragraph">
+<p>Whether the Side-by-Side diff view or the Unified diff view should be
+shown when clicking on a file path in the change screen.</p>
+</div>
+</li>
+<li>
+<p><a id="show-site-header"></a><code>Show Site Header / Footer</code>:</p>
+<div class="paragraph">
+<p>Whether the site header and footer should be shown.</p>
+</div>
+</li>
+<li>
+<p><a id="relative-dates"></a><code>Show Relative Dates In Changes Table</code>:</p>
+<div class="paragraph">
+<p>Whether timestamps in change lists and dashboards should be shown as
+relative timestamps, e.g. '12 days ago' instead of absolute timestamps
+such as 'Apr 15'.</p>
+</div>
+</li>
+<li>
+<p><a id="change-size-bars"></a><code>Show Change Sizes As Colored Bars</code>:</p>
+<div class="paragraph">
+<p>Whether change sizes should be visualized as colored bars. If disabled
+the numbers of added and deleted lines are shown as text, e.g.
+'+297, -63'.</p>
+</div>
+</li>
+<li>
+<p><a id="show-change-number"></a><code>Show Change Number In Changes Table</code>:</p>
+<div class="paragraph">
+<p>Whether in change lists and dashboards an <code>ID</code> column with the numeric
+change IDs should be shown.</p>
+</div>
+</li>
+<li>
+<p><a id="mute-common-path-prefixes"></a><code>Mute Common Path Prefixes In File List</code>:</p>
+<div class="paragraph">
+<p>Whether common path prefixes in the file list on the change screen
+should be <a href="user-review-ui.html#repeating-path-segments">grayed out</a>.</p>
+</div>
+</li>
+<li>
+<p><a id="inline-signed-off"></a><code>Insert Signed-off-by Footer For Inline Edit Changes</code>:</p>
+<div class="paragraph">
+<p>Whether a <code>Signed-off-by</code> footer should be automatically inserted into
+changes that are created from the web UI (e.g. by the <code>Create Change</code>
+and <code>Edit Config</code> buttons on the project screen, and the <code>Follow-Up</code>
+button on the change screen).</p>
+</div>
+</li>
+<li>
+<p><a id="publish-comments-on-push"></a><code>Publish comments on push</code>:</p>
+<div class="paragraph">
+<p>Whether to publish any outstanding draft comments by default when pushing
+updates to open changes. This preference just sets the default; the behavior can
+still be overridden using a <a href="user-upload.html#publish-comments">push option</a>.</p>
+</div>
+</li>
+<li>
+<p><a id="use-flash"></a><code>Use Flash Clipboard Widget</code>:</p>
+<div class="paragraph">
+<p>Whether the Flash clipboard widget should be used. If enabled and the Flash
+plugin is available, Gerrit offers a copy-to-clipboard icon next to IDs and
+commands that need to be copied frequently, such as the Change-Ids, commit IDs
+and download commands. Note that this option is only shown if the Flash plugin
+is available and the JavaScript Clipboard API is unavailable.</p>
+</div>
+</li>
+<li>
+<p><a id="work-in-progress-by-default"></a><code>Set new changes work-in-progress</code>:</p>
+<div class="paragraph">
+<p>Whether new changes are uploaded as work-in-progress per default. This
+preference just sets the default; the behavior can still be overridden using a
+<a href="user-upload.html#wip">push option</a>.</p>
+</div>
+</li>
+</ul>
+</div>
+<div id="my-menu" class="paragraph">
+<p>In addition it is possible to customize the menu entries of the <code>My</code>
+menu. This can be used to make the navigation to frequently used
+screens, e.g. configured <a href="#dashboards">dashboards</a>, quick.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="reply-by-email">Reply by Email</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit sends out email notifications to users and supports parsing back replies
+on some of them (when <a href="config-gerrit.html#receiveemail">configured</a>).</p>
+</div>
+<div class="paragraph">
+<p>Gerrit supports replies on these notification emails:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Notifications about new comments</p>
+</li>
+<li>
+<p>Notifications about new labels that were applied or removed</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>While Gerrit supports a wide range of email clients, the following ones have
+been tested and are known to work:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Gmail</p>
+</li>
+<li>
+<p>Gmail Mobile</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Gerrit supports parsing back all comment types that can be applied to a change
+via the WebUI:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Change messages</p>
+</li>
+<li>
+<p>Inline comments</p>
+</li>
+<li>
+<p>File comments</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Please note that comments can only be sent in reply to a comment in the original
+notification email, while the change message is independent of those.</p>
+</div>
+<div class="paragraph">
+<p>Gerrit supports parsing a user&#8217;s reply from both HTML and plaintext. Please note
+that some email clients extract the text from the HTML email they have received
+and send this back as a quoted reply if you have set the client to plaintext
+mode. In this case, Gerrit only supports parsing a change message. To work
+around this issue, consider setting a <a href="#email-format">User Preference</a> to
+receive only plaintext emails.</p>
+</div>
+<div class="paragraph">
+<p>Example notification:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Some User has posted comments on this change.
+(https://gerrit-review.googlesource.com/123123 )
+
+Change subject: My new change
+......................................................................
+
+
+Patch Set 3:
+
+Just a couple of smaller things I found.
+
+https://gerrit-review.googlesource.com/#/c/123123/3/MyFile.java
+File
+MyFile.java:
+
+https://gerrit-review.googlesource.com/#/c/123123/3/MyFile@420
+PS3, Line 420:     someMethodCall(param);
+Seems to be failing the tests.
+
+
+--
+To view, visit https://gerrit-review.googlesource.com/123123
+To unsubscribe, visit https://gerrit-review.googlesource.com/settings
+
+(Footers omitted for brevity, must be included in all emails)</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Example response from the user:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Thanks, I'll fix it.
+&gt; Some User has posted comments on this change.
+&gt; (https://gerrit-review.googlesource.com/123123 )
+&gt;
+&gt; Change subject: My new change
+&gt; ......................................................................
+&gt;
+&gt;
+&gt; Patch Set 3:
+&gt;
+&gt; Just a couple of smaller things I found.
+&gt;
+&gt; https://gerrit-review.googlesource.com/#/c/123123/3/MyFile.java
+&gt; File
+&gt; MyFile.java:
+Rename this file to File.java
+&gt;
+&gt; https://gerrit-review.googlesource.com/#/c/123123/3/MyFile@420
+&gt; PS3, Line 420:     someMethodCall(param);
+&gt; Seems to be failing the tests.
+&gt;
+Yeah, I see why, let me try again.
+&gt;
+&gt; --
+&gt; To view, visit https://gerrit-review.googlesource.com/123123
+&gt; To unsubscribe, visit https://gerrit-review.googlesource.com/settings
+&gt;
+&gt; (Footers omitted for brevity, must be included in all emails)</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this case, Gerrit will persist a change message ("Thanks, I&#8217;ll fix it."),
+a file comment ("Rename this file to File.java") as well as a reply to an
+inline comment ("Yeah, I see why, let me try again.").</p>
+</div>
+<div id="security-fixes" class="paragraph">
+<p>&#8201;&#8212;&#8201;Security Fixes</p>
+</div>
+<div class="paragraph">
+<p>If a security vulnerability is discovered you normally want to have an
+embargo about it until fixed releases have been made available. This
+means you want to develop and review security fixes in private.</p>
+</div>
+<div class="paragraph">
+<p>If your repository is public or grants broad read access it is
+recommended to fix security issues in a copy of your repository which
+has very restricted read permissions (e.g. <code>myproject-security-fixes</code>).
+You can then implement, review and submit the security fix in this
+repository, make and publish a new release and only then integrate the
+security fix back into the normal (public) repository.</p>
+</div>
+<div class="paragraph">
+<p>Alternatively you can do the security fix in your normal repository in
+a branch with restricted read permissions. We don&#8217;t recommend this
+because there is a risk of configuring the access rights wrongly and
+unintentionally granting read access to the wrong people.</p>
+</div>
+<div class="paragraph">
+<p>Using private changes for security fixes is <strong>not</strong> recommended due to
+the <a href="#private-changes-pitfalls">pitfalls</a> discussed above.
+Especially you don&#8217;t want the fix to become visible after submit and
+before you had a chance to make and publish a new release.</p>
+</div>
+<hr style="
+  height: 2px;
+  color: silver;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+">
+<div class="paragraph">
+<p>Part of <a href="index.html">Gerrit Code Review</a></p>
+</div>
+<div style="
+  position:fixed;
+  top:0px;
+  right:0px;
+  text-align:
+  right;
+  padding-top:2px;
+  padding-right:0.5em;
+  padding-bottom:2px;">
+<input size="40"
+  style="line-height: 0.75em;font-size: 0.75em;"
+  id="docSearch"
+  type="text">
+<button style="
+  background:none!important;
+  border:none;
+  padding:0!important;
+  vertical-align:bottom;
+  font-family:'Open Sans','DejaVu Sans',sans-serif;
+  font-size:0.8em;
+  color:#1d4b8f;
+  text-decoration:none;"
+  type="button"
+  id="searchBox">
+  Search
+</button>
+
+<script type="text/javascript">
+var f = function() {
+  window.location = '../#/Documentation/q/' +
+    encodeURIComponent(document.getElementById("docSearch").value);
+}
+document.getElementById("searchBox").onclick = f;
+document.getElementById("docSearch").onkeypress = function(e) {
+  if (13 == (e.keyCode ? e.keyCode : e.which)) {
+    f();
+  }
+}
+</script>
+
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

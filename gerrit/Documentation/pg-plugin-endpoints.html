@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Gerrit Code Review - JavaScript Plugin Endpoints</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Gerrit Code Review - JavaScript Plugin Endpoints</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_default_parameters">Default parameters</a></li>
+<li><a href="#_plugin_endpoints">Plugin endpoints</a>
+<ul class="sectlevel2">
+<li><a href="#_banner">banner</a></li>
+<li><a href="#_change_view_integration">change-view-integration</a></li>
+<li><a href="#_change_metadata_item">change-metadata-item</a></li>
+<li><a href="#_robot_comment_controls">robot-comment-controls</a></li>
+<li><a href="#_repo_command">repo-command</a></li>
+<li><a href="#_repo_config">repo-config</a></li>
+<li><a href="#_settings_menu_item">settings-menu-item</a></li>
+<li><a href="#_settings_screen">settings-screen</a></li>
+<li><a href="#_reply_text">reply-text</a></li>
+<li><a href="#_reply_label_scores">reply-label-scores</a></li>
+<li><a href="#_header_title">header-title</a></li>
+<li><a href="#_confirm_revert_change">confirm-revert-change</a></li>
+<li><a href="#_confirm_submit_change">confirm-submit-change</a></li>
+<li><a href="#_commit_container">commit-container</a></li>
+</ul>
+</li>
+<li><a href="#_dynamic_plugin_endpoints">Dynamic Plugin endpoints</a>
+<ul class="sectlevel2">
+<li><a href="#_change_list_header">change-list-header</a></li>
+<li><a href="#_change_list_item_cell">change-list-item-cell</a></li>
+<li><a href="#_change_view_tab_header">change-view-tab-header</a></li>
+<li><a href="#_change_view_tab_content">change-view-tab-content</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This document describes Gerrit JavaScript plugin endpoints that you can hook
+into for customizing the UI. It is assumed that you are familiar with
+<a href="pg-plugin-dev.html#loading">the general dev guide</a>.</p>
+</div>
+<div class="paragraph">
+<p>You can either hook into an endpoint by calling <code>plugin.hook(endpoint)</code> and
+then interact with the returned <code>HookApi</code>, which has <code>onAttached(callback)</code> and
+<code>onDetached(callback)</code> methods.</p>
+</div>
+<div class="paragraph">
+<p>Or you can define a
+<a href="https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements" class="external" target="_blank" rel="noopener">Web Component</a>
+and register it directly using
+<code>plugin.registerCustomComponent(endpoint, elementName)</code>.</p>
+</div>
+<div class="paragraph">
+<p>Sample code for using an endpoint:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-js" data-lang="js">Gerrit.install(plugin =&gt; {
+  const endpoint = 'change-metadata-item';
+  plugin.hook(endpoint).onAttached(element =&gt; {
+    const el = element.appendChild(document.createElement('div'));
+    el.textContent = 'Ah, there it is. Lovely.';
+    el.style = 'background: pink; line-height: 4em; text-align: center;';
+  });
+});</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_default_parameters">Default parameters</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>All endpoints receive the following parameters, set as attributes to custom
+components that are instantiated at the endpoint:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>plugin</code></p>
+<div class="paragraph">
+<p>the current plugin instance, the one that is used by <code>Gerrit.install()</code>.</p>
+</div>
+</li>
+<li>
+<p><code>content</code></p>
+<div class="paragraph">
+<p>decorated DOM Element, is only set for registrations that decorate existing
+components.</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_plugin_endpoints">Plugin endpoints</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following endpoints are available to plugins.</p>
+</div>
+<div class="sect2">
+<h3 id="_banner">banner</h3>
+<div class="paragraph">
+<p>The <code>banner</code> extension point is located at the top of all pages. The purpose
+is to allow plugins to show outage information and important announcements to
+all users.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_change_view_integration">change-view-integration</h3>
+<div class="paragraph">
+<p>The <code>change-view-integration</code> extension point is located between <code>Files</code> and
+<code>Change Log</code> section on the change view page, and it may take full page&#8217;s
+width.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>change</code></p>
+<div class="paragraph">
+<p>current change displayed, an instance of
+<a href="rest-api-changes.html#change-info">ChangeInfo</a></p>
+</div>
+</li>
+<li>
+<p><code>revision</code></p>
+<div class="paragraph">
+<p>current revision displayed, an instance of
+<a href="rest-api-changes.html#revision-info">RevisionInfo</a></p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_change_metadata_item">change-metadata-item</h3>
+<div class="paragraph">
+<p>The <code>change-metadata-item</code> extension point is located on the bottom of the
+change view left panel, under the <code>Label Status</code> and <code>Links</code> sections. Its width
+is equal to the left panel&#8217;s, and its primary purpose is to allow plugins to add
+sections of metadata to the left panel.</p>
+</div>
+<div class="paragraph">
+<p>In addition to default parameters, the following are available:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>change</code></p>
+<div class="paragraph">
+<p>current change displayed, an instance of
+<a href="rest-api-changes.html#change-info">ChangeInfo</a></p>
+</div>
+</li>
+<li>
+<p><code>revision</code></p>
+<div class="paragraph">
+<p>current revision displayed, an instance of
+<a href="rest-api-changes.html#revision-info">RevisionInfo</a></p>
+</div>
+</li>
+<li>
+<p><code>labels</code></p>
+<div class="paragraph">
+<p>labels with scores applied to the change, map of the label names to
+<a href="rest-api-changes.html#label-info">LabelInfo</a> entries</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_robot_comment_controls">robot-comment-controls</h3>
+<div class="paragraph">
+<p>The <code>robot-comment-controls</code> extension point is located inside each comment
+rendered on the diff page, and is only visible when the comment is a robot
+comment, specifically if the comment has a <code>robot_id</code> property.</p>
+</div>
+<div class="paragraph">
+<p>In addition to default parameters, the following are available:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>comment</code></p>
+<div class="paragraph">
+<p>current comment displayed, an instance of
+<a href="rest-api-changes.html#comment-info">CommentInfo</a></p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_repo_command">repo-command</h3>
+<div class="paragraph">
+<p>This endpoint is situated among the repository commands.</p>
+</div>
+<div class="paragraph">
+<p>In addition to default parameters, the following are available:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>repoName</code></p>
+<div class="paragraph">
+<p>String name of the repository currently being configured.</p>
+</div>
+</li>
+<li>
+<p><code>config</code></p>
+<div class="paragraph">
+<p>The object representing the repo config.</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_repo_config">repo-config</h3>
+<div class="paragraph">
+<p>The <code>repo-config</code> extension point is located at the bottom of the repository
+configuration settings screen.</p>
+</div>
+<div class="paragraph">
+<p>In addition to default parameters, the following are available:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>repoName</code></p>
+<div class="paragraph">
+<p>String name of the repository currently being configured.</p>
+</div>
+</li>
+<li>
+<p><code>readOnly</code></p>
+<div class="paragraph">
+<p>Boolean whether the repository configuration is read only by the logged in user.</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_settings_menu_item">settings-menu-item</h3>
+<div class="paragraph">
+<p>This endpoint is situated at the end of the navigation menu in the settings
+screen.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_settings_screen">settings-screen</h3>
+<div class="paragraph">
+<p>This endpoint is situated at the end of the body of the settings screen.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_reply_text">reply-text</h3>
+<div class="paragraph">
+<p>This endpoint wraps the textarea in the reply dialog.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_reply_label_scores">reply-label-scores</h3>
+<div class="paragraph">
+<p>This endpoint decorator wraps the voting buttons in the reply dialog.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_header_title">header-title</h3>
+<div class="paragraph">
+<p>This endpoint wraps the title-text in the application header.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_confirm_revert_change">confirm-revert-change</h3>
+<div class="paragraph">
+<p>This endpoint is inside the confirm revert dialog. By default it displays a
+generic confirmation message regarding reverting the change. Plugins may add
+content to this message or replace it entirely.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_confirm_submit_change">confirm-submit-change</h3>
+<div class="paragraph">
+<p>This endpoint is inside the confirm submit dialog. By default it displays a
+generic confirmation message regarding submission of the change. Plugins may add
+content to this message or replace it entirely.</p>
+</div>
+<div class="paragraph">
+<p>In addition to default parameters, the following are available:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>change</code></p>
+<div class="paragraph">
+<p>The change beinng potentially submitted, an instance of
+<a href="rest-api-changes.html#change-info">ChangeInfo</a></p>
+</div>
+</li>
+<li>
+<p><code>action</code></p>
+<div class="paragraph">
+<p>The submit action, including the title and label, an instance of
+<a href="rest-api-changes.html#action-info">ActionInfo</a></p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_commit_container">commit-container</h3>
+<div class="paragraph">
+<p>The <code>commit-container</code> extension point adds content at the end of the commit
+message to the change view.</p>
+</div>
+<div class="paragraph">
+<p>In addition to default parameters, the following are available:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>change</code></p>
+<div class="paragraph">
+<p>current change displayed, an instance of
+<a href="rest-api-changes.html#change-info">ChangeInfo</a></p>
+</div>
+</li>
+<li>
+<p><code>revision</code></p>
+<div class="paragraph">
+<p>current revision displayed, an instance of
+<a href="rest-api-changes.html#revision-info">RevisionInfo</a></p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_dynamic_plugin_endpoints">Dynamic Plugin endpoints</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following dynamic endpoints are available to plugins by calling
+<code>plugin.registerDynamicCustomComponent(endpoint, elementName)</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="_change_list_header">change-list-header</h3>
+<div class="paragraph">
+<p>The <code>change-list-header</code> extension point adds a header to the change list view.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_change_list_item_cell">change-list-item-cell</h3>
+<div class="paragraph">
+<p>The <code>change-list-item-cell</code> extension point adds a cell to the change list item.</p>
+</div>
+<div class="paragraph">
+<p>In addition to default parameters, the following are available:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>change</code></p>
+<div class="paragraph">
+<p>current change of the row, an instance of
+<a href="rest-api-changes.html#change-info">ChangeInfo</a></p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_change_view_tab_header">change-view-tab-header</h3>
+<div class="paragraph">
+<p>The <code>change-view-tab-header</code> extension point adds a primary tab to the change
+view. This must be used in conjunction with <code>change-view-tab-content</code>.</p>
+</div>
+<div class="paragraph">
+<p>In addition to default parameters, the following are available:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>change</code></p>
+<div class="paragraph">
+<p>current change displayed, an instance of
+<a href="rest-api-changes.html#change-info">ChangeInfo</a></p>
+</div>
+</li>
+<li>
+<p><code>revision</code></p>
+<div class="paragraph">
+<p>current revision displayed, an instance of
+<a href="rest-api-changes.html#revision-info">RevisionInfo</a></p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_change_view_tab_content">change-view-tab-content</h3>
+<div class="paragraph">
+<p>The <code>change-view-tab-content</code> extension point adds primary tab content to
+the change view. This must be used in conjunction with <code>change-view-tab-header</code>.</p>
+</div>
+<div class="paragraph">
+<p>In addition to default parameters, the following are available:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>change</code></p>
+<div class="paragraph">
+<p>current change displayed, an instance of
+<a href="rest-api-changes.html#change-info">ChangeInfo</a></p>
+</div>
+</li>
+<li>
+<p><code>revision</code></p>
+<div class="paragraph">
+<p>current revision displayed, an instance of
+<a href="rest-api-changes.html#revision-info">RevisionInfo</a></p>
+</div>
+</li>
+</ul>
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

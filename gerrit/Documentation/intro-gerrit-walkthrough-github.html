@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Basic Gerrit Walkthrough&#8201;&#8212;&#8201;For GitHub Users</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Basic Gerrit Walkthrough&#8201;&#8212;&#8201;For GitHub Users</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#tldr">tl;dr</a></li>
+<li><a href="#clone">1. Cloning a Repository</a></li>
+<li><a href="#create-change">2. Making a Change</a></li>
+<li><a href="#request-review">3. Asking for Code Review</a></li>
+<li><a href="#reviewing">4. Reviewing a Change</a></li>
+<li><a href="#iterate">5. Iterating on the Change</a></li>
+<li><a href="#submit">6. Submitting a Change</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This document aims to provide a concise description of the core principles of
+code review in Gerrit for people that were previously using Pull Requests on
+Github or similar concepts. Nothing in this document is meant to state that
+one or the other might be better, but only aims to help new users understand
+Gerrit more readily. We use Github as the point of comparison since it seems
+to be the most popular service.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To illustrate the differences in a meaningful order, we will walk you through
+the process of cloning a repo, making a change, asking for code review,
+iterating on the code and finally having it submitted to the code base. This
+document also does not aim to describe all features of Gerrit. Please refer to
+the <a href="intro-gerrit-walkthrough.html">Basic Gerrit Walkthrough</a> or
+<a href="index.html">the rest of the documentation</a> for a more complete overview and additional pointers.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="tldr">tl;dr</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Here’s how getting code reviewed and submitted with Gerrit is different from
+doing the same with GitHub:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>You need the add a commit-msg hook script when you clone a repo for the first
+time using a snippet you can find e.g. <a href="https://gerrit-review.googlesource.com/admin/repos/gerrit" class="external" target="_blank" rel="noopener">here</a>;</p>
+</li>
+<li>
+<p>Your review will be on a single commit instead of a branch. You use
+<code>git commit --amend</code> to modify a code change.</p>
+</li>
+<li>
+<p>Instead of using the Web UI to create a pull request, you use
+<code>git push origin HEAD:refs/for/master</code> to upload new local commits that are
+ready for review to Gerrit. You will find the URL to the review in the output of
+the push command.</p>
+</li>
+<li>
+<p>As a reviewer, Gerrit offers a number of so-called labels to vote on, one of
+which is Code-Review. You indicate a negative, neutral or positive review using
+a -1, 0 or +1 vote.</p>
+</li>
+<li>
+<p>To be able to submit (== merge) a change, you usually need a +2 Code-Review
+vote and possibly additional positive votes, depending on the configuration of
+the project you are contributing to.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="clone">1. Cloning a Repository</h2>
+<div class="sectionbody">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Both GitHub and Gerrit provide simple Git repository hosting (of course both can
+do much more). In the simplest setup, you could just use both as such without
+any code review to push code. We will assume that this is not what you want to
+do and focus on the use case where your change requires a review.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The first step to working with the code is to clone the repo. For both, Gerrit
+and GitHub, you can simply use the <code>git clone</code> command.</p>
+</div>
+<div class="paragraph">
+<p>For Gerrit, there is an additional step before you can start making changes. For
+reasons we explain below, you’ll have to add a <a href="https://gerrit-review.googlesource.com/Documentation/user-changeid.html" class="external" target="_blank" rel="noopener">commit-msg hook</a> script. This will
+append the Gerrit Change-Id to every commit message such that Gerrit can track
+commits through the review process. To make this process a little easier in
+Gerrit, you can find a command snippet for cloning and adding the commit-msg
+hook on the repository page (e.g. <a href="https://gerrit-review.googlesource.com/admin/repos/gerrit" class="external" target="_blank" rel="noopener">here</a>).</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="create-change">2. Making a Change</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong>Branches</strong></p>
+</div>
+<div class="paragraph">
+<p>Now that you have the code in the git repo on your machine, you can start making
+changes. With GitHub, you would usually create a new branch and then start
+committing to it. This branch would then contain all the changes you share with
+your code reviewers in the next step. Your local branch will usually also be
+pushed to the remote server. This can be handy to back up your work or hand-off
+work to another device or developer.</p>
+</div>
+<div class="paragraph">
+<p>With Gerrit, you can also create a new local branch to develop in. While not
+required, it can be considered a best practice to sandbox this change from other
+changes you might be making. In contrast to the GitHub model, your local branch
+will not have to be pushed to the remote in Gerrit, at least not for the
+purposes of code review.</p>
+</div>
+<div class="paragraph">
+<p><strong>Commits</strong>
+In Gerrit, a single commit is the unit of code that will be reviewed. With
+GitHub, you can commit to your branch as much as you like and the sum of all
+your commits on that branch will get reviewed. As a single commit gets reviewed
+in Gerrit, you need to <code>git commit --amend</code> when you iterate on the same change as
+opposed to only using <code>git commit</code> with GitHub (see Section 5 for more). You can,
+however, also add another commit on top of your existing commit in Gerrit, which
+will create a second change (and thus another review) that is based on your
+first change. Gerrit will show the relationship between these two changes as a
+so-called relation chain. This also means that your second change can only be
+submitted after the first was successfully merged. In many basic use cases, this
+situation is however not what you want.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/user-review-ui-change-relation-chain.png" alt="Relation chain display on the change page.">
+</div>
+</div>
+<div class="paragraph">
+<p>With GitHub, you may be pushing your branch to the remote for non-code-review
+purposes, as mentioned above. You usually do not do this with Gerrit, as
+Gerrit-managed repos often only have one or a few branches on the server that
+can only be merged into via code review.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="request-review">3. Asking for Code Review</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After you are satisfied with the changes you made, you’ll usually want/need to
+get your code reviewed. In GitHub, you would push your branch to the remote, go
+to the Web UI and create a pull request. In Gerrit, you need to push your commit
+(or the series of changes/commits) to the remote first, since you usually
+develop in a local branch only. While you can often just use git push with
+GitHub, you need to do a slightly different thing for Gerrit. Gerrit uses a
+“magic” branch that tells the server that this code is supposed to be reviewed.
+To send the changes you made on your local branch to review and being eventually
+merged into the remote’s master branch, you use
+<code>git push origin HEAD:refs/for/master</code>. There are also <a href="user-upload.html#_git_push">a number of Gerrit change
+options</a> you can trigger from the CLI this way.</p>
+</div>
+<div class="paragraph">
+<p>After successfully pushing your change to Gerrit, you will already find the URL
+for viewing your change in Gerrit’s Web UI in the response you get from the
+server. The description of the Gerrit code review that was just created is equal
+to the commit message of that one commit the change is based on. In GitHub, you
+might have described your change in the message you can create when creating the
+pull request in the GitHub Web UI.</p>
+</div>
+<div class="paragraph">
+<p>Next, you would go and visit your Gerrit change in the Web UI to get your change
+ready for review (choose reviewers, cc people, check for failing CI builds or
+tests, etc.), very similar to what you do on Github. Reviewers will be notified
+via email once you add them. By default, anyone can add reviewers to a Gerrit
+change. In GitHub, this ability is reserved for certain users, so you may have
+relied on others adding reviewers for you before. This can be the case in a
+Gerrit project, but it is also often expected that the change owner (usually the
+creator of the change) adds reviewers to get the review process started.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="reviewing">4. Reviewing a Change</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Switching perspectives briefly, reviewing a change is fairly similar between
+GitHub and Gerrit. You, as a reviewer, will be notified of a change you have
+been added to via email or see an “incoming” change on your Gerrit dashboard.
+The dashboard is the central overview of changes going on within a Gerrit
+instance. By default, the dashboard shows changes that you are involved in, in
+any way. You can also see all changes on a Gerrit server by using the top menu
+(“Changes” &#8594; “Open”). This view is more similar to what you see on Github, when
+you navigate to the Pull Requests tab of the project/repository you are working
+on. Note, however, that a single Gerrit instance can host multiple projects
+(also referred to as repositories; a list can be found, for example, <a href="https://gerrit-review.googlesource.com/admin/repos" class="external" target="_blank" rel="noopener">here</a>). Your
+dashboard and other lists of changes will show all changes across the
+projects/repositories by default.</p>
+</div>
+<div class="paragraph">
+<p>Back to your dashboard, you can click on the change you want to review. You can
+also access this from the email you received. You will see the same view that
+you saw as an author. In the middle of the change page, you can find the list of
+files that have been modified, just like what you find in the “Files changed”
+tab of GitHub. Also similarly, you can leave comments by highlighting a piece of
+the code and pressing ‘c’. All comments you make are in a draft state and thus
+only visible to you, like on GitHub. When you are done with your review, you
+need to click the “Reply” button at the top of the change page to send your
+assessment to the change owner alongside a “change message” summarizing your
+findings and/or adding higher level comments. Replying to a change makes your
+draft comments and the change message visible on the change page for everyone
+that has view access to this change. This again is fairly similar to GitHub,
+except for Gerrit’s voting labels.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/user-review-ui-change-reply-dialogue.png" alt="Reply dialogue for a Gerrit change.">
+</div>
+</div>
+<div class="paragraph">
+<p>As you can see in the screenshot of the reply dialogue, the voting labels are in
+the bottom part of the dialogue. They can be fairly simple as in this case, but
+there can also be a larger number of labels you might be able to vote on. Labels
+can be used to distinguish different aspects of a review (e.g. whether or not
+the licensing of included libraries is okay), outcome of CI systems (e.g.
+whether or not a format checker passed, a build completed successfully, etc.) or
+as a flag that is read by bots to do something with a change. An example of a
+more complex label setup can be seen in this screenshot from the Android Gerrit
+instance.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/user-review-ui-change-complex-reply-dialogue.png" alt="Reply dialogue for a change on the Android project.">
+</div>
+</div>
+<div class="paragraph">
+<p>In the simplest case shown above, voting -1 on the Code-Review label equals
+requesting changes on a GitHub pull request, 0 equals just having comments and
++1 means that you think this change looks good. Usually, Gerrit changes require
+a +2 vote on the Code-Review label to be submitted (merged in GitHub terms, see
+Section 6 below). Being able to vote +2 on Code-Review is often restricted to
+maintainers of a given project, so they can have a final say on a change. These
+practices can however vary between projects, as labels and voting permissions
+are configurable.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="iterate">5. Iterating on the Change</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After your reviewers got back to you as a change owner, you realize that you
+need to make a few updates to the code in your change. As mentioned in Section 2
+(Making a Change), you’ll have to amend the commit that this review was based
+on. To do that, you might have to checkout the respective commit first if it is
+not at the tip of your local branch, for example if you stacked multiple changes
+on top of each other. Another common use case is to not have a local branch but
+to work in the so-called <a href="https://www.git-tower.com/learn/git/faq/detached-head-when-checkout-commit" class="external" target="_blank" rel="noopener">detached HEAD</a> mode. In that case you can use the
+“Download” button on the files tab to copy a command that fetches and checks out
+the commit underlying your change. Make sure to select the latest patchset,
+though!</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/user-review-ui-change-page-download.png" alt="Using the “Download” button to copy a command that checks out a given patchset for a change.">
+</div>
+</div>
+<div class="paragraph">
+<p>After checking out the commit, you then make the changes as usual. When you
+think you are done, you can commit with the <code>--amend</code> flag to change the commit
+you currently have checked out.</p>
+</div>
+<div class="paragraph">
+<p>When you <code>git commit --amend</code> to iterate on your change, you might be worried that
+you are changing your previous commit and may thus lose that state of your work.
+However, here the Change-Id appended to your commit message comes into play.
+While the SHA-1 hash of your change (the commit ID used by Git) might change, the
+Change-Id stays the same (in fact it is the SHA-1 hash of the very first version
+of that commit). When this amended commit is uploaded to the Gerrit server,
+Gerrit knows that this commit is really an iteration of that previous commit
+(and the associated review) and will preserve both, the old and the new state.
+All previous states of your commit will be visible in the Gerrit UI as so-called
+patchsets (and <a href="intro-user.html#change-ref">from the Git repo</a>).</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/user-review-ui-change-page-patchset-dropdown.png" alt="Screenshot of the patchset dropdown above the file list" width="showing all iterations a commit went through.">
+</div>
+</div>
+<div class="paragraph">
+<p>After iterating as much as needed, your reviewers will finally be satisfied.
+With GitHub, you would have a string of additional commits in the branch you
+used for opening the pull request. In Gerrit, you still only have that one
+commit in your local branch. All the iterations are available as patchsets in
+the Web UI as well as from the special branch mentioned above.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="submit">6. Submitting a Change</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Finally, it is time to submit your change. As mentioned above, the precondition
+for this in Gerrit is usually at least a +2 vote on the Code-Review label. With
+GitHub, an authorized person must have given an “Approve” vote. Once this
+precondition has been met, anyone with submit permission can submit the change
+in Gerrit. To do that, you click the “Submit” button in the Gerrit Web UI just
+as you would click the “Merge Pull Request” button in GitHub. Both, Gerrit and
+GitHub, allow different merge strategies, that can be enabled by project
+administrators. In Gerrit, a merge strategy is configured for each project and
+cannot be changed at submit time while this may be possible with GitHub,
+depending on project configuration.</p>
+</div>
+<div class="paragraph">
+<p>A merge can fail due to conflicts with competing edits on the target branch.
+With GitHub, you may be able to resolve some simple conflicts directly from the
+Web UI. In Gerrit, you can attempt to rebase a change from the Web UI. If there
+are no conflicts, a new patchset will automatically appear. Otherwise, similar
+to GitHub, you need to resolve conflicts on the command line with your local
+clone of the repository. While you resolve conflicts that arise from a
+<code>git merge</code> for GitHub, you will need to <a href="intro-user.html#rebase">use <code>git rebase</code> with your change</a> on
+Gerrit.</p>
+</div>
+<div class="paragraph">
+<p>After resolving locally, with GitHub, you end up with another commit on your
+pull request branch and push it to the server, which should then allow you to
+finish merging the change. With Gerrit, resolving the conflict through rebasing
+your commit/change results in another amended version of that same commit and
+you upload it to Gerrit, resulting in a new patchset just like your previous
+iterations addressing reviewer comments. This new patchset will usually require
+another round of reviewer votes, as Gerrit will not copy votes from a previous
+patchset by default.</p>
+</div>
+<hr style="
+  height: 2px;
+  color: silver;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+">
+<div class="paragraph">
+<p>Part of <a href="index.html">Gerrit Code Review</a></p>
+</div>
+<div style="
+  position:fixed;
+  top:0px;
+  right:0px;
+  text-align:
+  right;
+  padding-top:2px;
+  padding-right:0.5em;
+  padding-bottom:2px;">
+<input size="40"
+  style="line-height: 0.75em;font-size: 0.75em;"
+  id="docSearch"
+  type="text">
+<button style="
+  background:none!important;
+  border:none;
+  padding:0!important;
+  vertical-align:bottom;
+  font-family:'Open Sans','DejaVu Sans',sans-serif;
+  font-size:0.8em;
+  color:#1d4b8f;
+  text-decoration:none;"
+  type="button"
+  id="searchBox">
+  Search
+</button>
+
+<script type="text/javascript">
+var f = function() {
+  window.location = '../#/Documentation/q/' +
+    encodeURIComponent(document.getElementById("docSearch").value);
+}
+document.getElementById("searchBox").onclick = f;
+document.getElementById("docSearch").onkeypress = function(e) {
+  if (13 == (e.keyCode ? e.keyCode : e.which)) {
+    f();
+  }
+}
+</script>
+
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

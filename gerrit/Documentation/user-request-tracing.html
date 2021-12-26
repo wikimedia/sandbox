@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Request Tracing</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Request Tracing</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#on-demand">On-demand Request Tracing</a></li>
+<li><a href="#auto-retry">Automatic Request Tracing</a>
+<ul class="sectlevel2">
+<li><a href="#auto-retry-metrics">Metrics</a></li>
+</ul>
+</li>
+<li><a href="#find-trace">Find log entries for a trace ID</a></li>
+<li><a href="#_which_information_is_captured_in_a_trace">Which information is captured in a trace?</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="on-demand">On-demand Request Tracing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit supports on-demand tracing of single requests that results in
+additional logs with debug information that are written to the
+<code>error_log</code>. The logs that correspond to a traced request are
+associated with a unique trace ID. This trace ID is returned with the
+response and can be used by an administrator to find the matching log
+entries.</p>
+</div>
+<div class="paragraph">
+<p>How tracing is enabled and how the trace ID is returned depends on the
+request type:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>REST API: For REST calls tracing can be enabled by setting the
+<code>trace</code> request parameter or the <code>X-Gerrit-Trace</code> header, the trace
+ID is returned as <code>X-Gerrit-Trace</code> header. More information about
+this can be found in the <a href="rest-api.html#tracing">Request Tracing</a>
+section of the <a href="rest-api.html">REST API documentation</a>.</p>
+</li>
+<li>
+<p>SSH API: For SSH calls tracing can be enabled by setting the
+<code>--trace</code> option. More information about this can be found in
+the <a href="cmd-index.html#trace">Trace</a> section of the
+<a href="cmd-index.html">SSH command documentation</a>.</p>
+</li>
+<li>
+<p>Git Push (requires usage of git protocol v2): For Git pushes tracing
+can be enabled by setting the <code>trace</code> push option, the trace ID is
+returned in the command output. More information about this can be
+found in the <a href="user-upload.html#trace">Trace</a> section of the
+<a href="user-upload.html">upload documentation</a>.</p>
+</li>
+<li>
+<p>Git Clone/Fetch/Ls-Remote (requires usage of git protocol v2): For
+Git clone/fetch/ls-remote tracing can be enabled by setting the
+<code>trace</code> server option. Use '-o trace=&lt;TRACE-ID&gt;' for <code>git fetch</code> and
+<code>git ls-remote</code>, and '--server-option trace=&lt;TRACE-ID&gt;' for
+<code>git clone</code>. If the <code>trace</code> server option is set without a value
+(without trace ID) a trace ID is generated but the generated trace ID
+is not returned to the client (hence a trace ID should always be
+set).</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>When request tracing is enabled it is possible to provide an ID that
+should be used as trace ID. If a trace ID is not provided a trace ID is
+automatically generated. The trace ID must be provided to the support
+team (administrator of the server) so that they can find the trace.</p>
+</div>
+<div class="paragraph">
+<p>When doing traces it is recommended to specify the ID of the issue
+that is being investigated as trace ID so that the traces of the issue
+can be found more easily. When the issue ID is used as trace ID there
+is no need to find the generated trace ID and report it in the issue.</p>
+</div>
+<div class="paragraph">
+<p>Since tracing consumes additional server resources tracing should only
+be enabled for single requests if there is a concrete need for
+debugging. In particular bots should never enable tracing for all their
+requests by default.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="auto-retry">Automatic Request Tracing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit can be <a href="config-gerrit.html#retry.retryWithTraceOnFailure">
+configured</a> to automatically retry requests on non-recoverable failures
+with tracing enabled. This allows to automatically captures traces of
+these failures for further analysis by the Gerrit administrators.</p>
+</div>
+<div class="paragraph">
+<p>The auto-retry on failure behaves the same way as if the calling user
+would retry the failed operation with tracing enabled.</p>
+</div>
+<div class="paragraph">
+<p>It is expected that the auto-retry fails with the same exception that
+triggered the auto-retry, however this is not guaranteed:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Not all Gerrit operations are fully atomic and it can happen that
+some parts of the operation have been successfully performed before
+the failure happened. In this case the auto-retry may fail with a
+different exception.</p>
+</li>
+<li>
+<p>Some exceptions may mistakenly be considered as non-recoverable and
+the auto-retry actually succeeds.</p>
+</li>
+</ul>
+</div>
+<div id="auto-retry-succeeded" class="paragraph">
+<p>If an auto-retry succeeds you may consider filing this as
+<a href="https://bugs.chromium.org/p/gerrit/issues/entry?template=GoogleSource+Issue" class="external" target="_blank" rel="noopener">
+Gerrit issue</a> so that the Gerrit developers can fix this and treat this
+exception as recoverable.</p>
+</div>
+<div class="paragraph">
+<p>The trace IDs for auto-retries are generated and start with
+<code>retry-on-failure-</code>. For REST requests they are returned to the client
+as <code>X-Gerrit-Trace</code> header.</p>
+</div>
+<div class="paragraph">
+<p>The best way to search for auto-retries in logs is to do a grep by
+<code>AutoRetry</code>. For each auto-retry that happened this should match 1 or 2
+log entries:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>one <code>FINE</code> log entry with the exception that triggered the auto-retry</p>
+</li>
+<li>
+<p>one <code>FINE</code> log entry with the exception that happened on auto-retry
+(if this log entry is not present the operation succeeded on
+auto-retry)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To inspect single auto-retry occurrences in detail you can do a
+<a href="#find-trace">grep by the trace ID</a>. The trace ID is part of the log
+entries which have been found by the previous grep (watch out for
+something like: <code>retry-on-failure-1534166888910-3985dfba</code>).</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+Auto-retrying on failures is only supported by some of the REST
+endpoints (change REST endpoints that perform updates).
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="auto-retry-metrics">Metrics</h3>
+<div class="paragraph">
+<p>If auto-retry is <a href="config-gerrit.html#retry.retryWithTraceOnFailure">
+enabled</a> the following metrics are reported:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>action/auto_retry_count</code>: Number of automatic retries with tracing</p>
+</li>
+<li>
+<p><code>action/failures_on_auto_retry_count</code>: Number of failures on auto retry</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>By comparing the values of these counters one can see how often the
+auto-retry succeeds. As explained <a href="#auto-retry-succeeded">above</a> if
+auto-retries succeed that&#8217;s an issue with Gerrit that you may want to
+report.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="find-trace">Find log entries for a trace ID</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If tracing is enabled all log messages that correspond to the traced
+request have a <code>TRACE_ID</code> tag set, e.g.:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>[2018-08-13 15:28:08,913] [HTTP-76] TRACE com.google.gerrit.httpd.restapi.RestApiServlet : Received REST request: GET /a/accounts/self (parameters: [trace]) [CONTEXT forced=true TRACE_ID="1534166888910-3985dfba" ]
+[2018-08-13 15:28:08,914] [HTTP-76] TRACE com.google.gerrit.httpd.restapi.RestApiServlet : Calling user: admin [CONTEXT forced=true TRACE_ID="1534166888910-3985dfba" ]
+[2018-08-13 15:28:08,942] [HTTP-76] TRACE com.google.gerrit.httpd.restapi.RestApiServlet : REST call succeeded: 200 [CONTEXT forced=true TRACE_ID="1534166888910-3985dfba" ]</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By doing a grep with the trace ID over the error log the log entries
+that correspond to the request can be found.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+Usually only server administrators have access to the logs.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_which_information_is_captured_in_a_trace">Which information is captured in a trace?</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>request details</p>
+<div class="ulist">
+<ul>
+<li>
+<p>REST API: request URL, request parameter names, calling user,
+response code, response body on errors</p>
+</li>
+<li>
+<p>SSH API: parameter names</p>
+</li>
+<li>
+<p>Git API: push options, magic branch parameter names</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>cache misses, cache evictions</p>
+</li>
+<li>
+<p>reads from NoteDb, writes to NoteDb</p>
+</li>
+<li>
+<p>reads of meta data files, writes of meta data files</p>
+</li>
+<li>
+<p>index queries (with parameters and matches)</p>
+</li>
+<li>
+<p>reindex events</p>
+</li>
+<li>
+<p>permission checks (e.g. which rule is responsible for a deny)</p>
+</li>
+<li>
+<p>timer metrics</p>
+</li>
+<li>
+<p>all other logs</p>
+</li>
+</ul>
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

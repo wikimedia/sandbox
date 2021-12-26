@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Gerrit Code Review - Backup</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Gerrit Code Review - Backup</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#mand-backup">Data which must be backed up</a></li>
+<li><a href="#optional-backup">Data optional to be backed up</a></li>
+<li><a href="#cons-backup">Consistent backups</a>
+<ul class="sectlevel2">
+<li><a href="#cons-backup-snapshot">Filesystem snapshots</a></li>
+<li><a href="#cons-backup-read-only">Turn primary server read-only for backup</a></li>
+<li><a href="#cons-backup-replicate">Replicate data for backup</a></li>
+<li><a href="#cons-backup-offline">Take primary server offline for backup</a></li>
+</ul>
+</li>
+<li><a href="#backup-methods">Backup methods</a>
+<ul class="sectlevel2">
+<li><a href="#backup-methods-snapshots">Filesystem snapshots</a></li>
+<li><a href="#backup-methods-other">Other backup methods</a></li>
+</ul>
+</li>
+<li><a href="#backup-methods-test">Test backups</a></li>
+<li><a href="#backup-dr">Disaster recovery</a>
+<ul class="sectlevel2">
+<li><a href="#backup-dr-repl">Replicate backup archives</a></li>
+<li><a href="#backup-dr-multi-site">Multi-site setup</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>A Gerrit Code Review site contains data that needs to be backed up regularly.
+This document describes best practices for backing up review data.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="mand-backup">Data which must be backed up</h2>
+<div class="sectionbody">
+<div id="mand-backup-git" class="dlist">
+<dl>
+<dt class="hdlist1">Git repositories</dt>
+<dd>
+<div class="paragraph">
+<p>The bare Git repositories managed by Gerrit are typically stored in the
+<code>${SITE}/git</code> directory. However, the locations can be customized in
+<code>${site}/etc/gerrit.config</code>. They contain the history of the respective
+projects, and since 2.15 if you are using <em>NoteDb</em>, and for 3.0 and newer,
+also change and review metadata, user accounts and groups.</p>
+</div>
+</dd>
+<dt class="hdlist1">SQL database</dt>
+<dd>
+<div class="paragraph">
+<p>Gerrit releases in the 2.x series store some data in the database you
+have chosen when installing Gerrit. If you are using 2.16 and have
+migrated to <em>NoteDb</em> only the schema version is stored in the database.</p>
+</div>
+<div class="paragraph">
+<p>If you are using h2 you need to backup the <code>.db</code> files in the folder
+<code>${SITE}/db</code>.</p>
+</div>
+<div class="paragraph">
+<p>For all other database types refer to their backup documentation.</p>
+</div>
+<div class="paragraph">
+<p>Gerrit release 3.0 and newer store all primary data in <em>NoteDb</em> inside
+the git repositories of the Gerrit site. Only the review flag marking in
+the UI when you have reviewed a changed file is stored in a relational
+database. If you are using h2 this database is named
+<code>account_patch_reviews.h2.db</code>.</p>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="optional-backup">Data optional to be backed up</h2>
+<div class="sectionbody">
+<div id="data-optional-backup-index" class="dlist">
+<dl>
+<dt class="hdlist1">Search index</dt>
+<dd>
+<div class="paragraph">
+<p>The <em>Lucene</em> search index is stored in the <code>${SITE}/index</code> folder.
+It can be recomputed from primary data in the git repositories but
+reindexing may take a long time hence backing up the index makes sense
+for production installations.</p>
+</div>
+<div class="paragraph">
+<p>If you have chosen to use <em>Elastic Search</em> for indexing,
+refer to its
+<a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-snapshots.html" class="external" target="_blank" rel="noopener">backup documentation</a>.</p>
+</div>
+</dd>
+</dl>
+</div>
+<div id="optional-backup-cache" class="dlist">
+<dl>
+<dt class="hdlist1">Caches</dt>
+<dd>
+<div class="paragraph">
+<p>Gerrit uses many caches which populate automatically. Some of the caches
+are persisted in the directory <code>${SITE}/cache</code> to retain the cached data
+across restarts. Since repopulating persistent caches takes time and server
+resources it makes sense to include them in backups to avoid unnecessary
+higher load and degraded performance when a Gerrit site has been restored
+from backup and caches need to be repopulated.</p>
+</div>
+</dd>
+</dl>
+</div>
+<div id="optional-backup-config" class="dlist">
+<dl>
+<dt class="hdlist1">Configuration</dt>
+<dd>
+<div class="paragraph">
+<p>Gerrit configuration files are located in the directory <code>${SITE}/etc</code>
+and should be backed up or versioned in a git repository. The <code>etc</code>
+directory also contains secrets which should be handled separately</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>secure.config</code> contains passwords and <code>auth.registerEmailPrivateKey</code></p>
+</li>
+<li>
+<p>public and private SSH host keys</p>
+<div class="paragraph">
+<p>You may consider to use the
+<a href="https://gerrit.googlesource.com/plugins/secure-config/" class="external" target="_blank" rel="noopener">secure-config plugin</a>
+to encrypt these secrets.</p>
+</div>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+<div id="optional-backup-plugin-data" class="dlist">
+<dl>
+<dt class="hdlist1">Plugin Data</dt>
+<dd>
+<div class="paragraph">
+<p>The <code>${SITE}/data/</code> directory is used by plugins storing data like e.g.
+the delete-project and the replication plugin.</p>
+</div>
+</dd>
+</dl>
+</div>
+<div id="optional-backup-libs" class="dlist">
+<dl>
+<dt class="hdlist1">Libraries</dt>
+<dd>
+<div class="paragraph">
+<p>The <code>${SITE}/lib/</code> directory contains libraries used as statically loaded
+plugin or providing additional dependencies needed by Gerrit plugins.</p>
+</div>
+</dd>
+</dl>
+</div>
+<div id="optional-backup-plugins" class="dlist">
+<dl>
+<dt class="hdlist1">Plugins</dt>
+<dd>
+<div class="paragraph">
+<p>The <code>${SITE}/plugins/</code> directory contains the installed Gerrit plugins.</p>
+</div>
+</dd>
+</dl>
+</div>
+<div id="optional-backup-static" class="dlist">
+<dl>
+<dt class="hdlist1">Static Resources</dt>
+<dd>
+<div class="paragraph">
+<p>The <code>${SITE}/static/</code> directory contains static resources used to customize the
+Gerrit UI and email templates.</p>
+</div>
+</dd>
+</dl>
+</div>
+<div id="optional-backup-logs" class="dlist">
+<dl>
+<dt class="hdlist1">Logs</dt>
+<dd>
+<div class="paragraph">
+<p>The <code>${SITE}/logs/</code> directory contains Gerrit server log files. Logs can still
+be written when the server is in read-only mode.</p>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="cons-backup">Consistent backups</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are several ways to ensure consistency when backing up primary data.</p>
+</div>
+<div class="sect2">
+<h3 id="cons-backup-snapshot">Filesystem snapshots</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Gerrit 3.0 or newer</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p>all primary data is stored in git</p>
+</li>
+<li>
+<p>Use a file system like lvm, zfs, btrfs or nfs supporting snapshots.
+Create a snapshot and then archive the snapshot.</p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1">Gerrit 2.x</dt>
+<dd>
+<div class="paragraph">
+<p>Gerrit 2.16 can use <em>NoteDb</em> to store almost all this data which
+simplifies creating backups since consistency between database and git
+repositories is no longer critical. If you migrated to <em>NoteDb</em> you can
+follow the backup procedure for 3.0 and higher and additionally take
+a backup of the database, which only contains the schema version,
+hence consistency between git and database is no longer critical since
+the schema version only changes during upgrade. If you didn&#8217;t migrate
+to <em>NoteDb</em> then follow the backup procedure for older 2.x Gerrit versions.</p>
+</div>
+<div class="paragraph">
+<p>Older 2.x Gerrit versions store change meta data, review comments, votes,
+accounts and group information in a SQL database. Creating consistent backups
+where git repositories and the data stored in the database are backed up
+consistently requires to turn the server read-only or to shut it down
+while creating the backup since there is no integrated transaction handling
+between git repositories and the SQL database. Also crons and currently
+running cron jobs (e.g. repacking repositories) which affect the repositories
+may need to be shut down.
+Use a file system supporting snapshots to keep the period where the gerrit
+server is read-only or down as short as possible.</p>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect2">
+<h3 id="cons-backup-read-only">Turn primary server read-only for backup</h3>
+<div class="paragraph">
+<p>Make the primary server handling write operations read-only before taking the
+backup. This means read-access is still available from replica servers during
+backup, because only write operations have to be stopped to ensure consistency.
+This can be implemented using the
+<a href="https://gerrit.googlesource.com/plugins/readonly/" class="external" target="_blank" rel="noopener"><em>readonly</em></a> plugin.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="cons-backup-replicate">Replicate data for backup</h3>
+<div class="paragraph">
+<p>Replicating the git repositories can backup the most critical repository data
+but does not backup repository meta-data such as the project description
+file, ref-logs, git configs, and alternate configs.</p>
+</div>
+<div class="paragraph">
+<p>Replicate all git repositories to another file system using
+<code>git clone --mirror</code>,
+or the
+<a href="https://gerrit.googlesource.com/plugins/replication" class="external" target="_blank" rel="noopener">replication plugin</a>
+or the
+<a href="https://gerrit.googlesource.com/plugins/pull-replication" class="external" target="_blank" rel="noopener">pull-replication plugin</a>.
+Best you use a filesystem supporting snapshots to create a backup archive
+of such a replica.</p>
+</div>
+<div class="paragraph">
+<p>For 2.x Gerrit versions also set up a database replica for the data stored in the
+SQL database. If you are using 2.16 and migrated to <em>NoteDb</em> you may consider to
+skip setting up a database replica, instead take a backup of the database which only
+contains the current schema version in this case.
+In addition you need to ensure that no write operations are in flight before you
+take the replica offline. Otherwise the database backup might be inconsistent
+with the backup of the git repositories.</p>
+</div>
+<div class="paragraph">
+<p>Do not skip backing up the replica, the replica alone IS NOT a backup.
+Imagine someone deleted a project by mistake and this deletion got replicated.
+Replication of repository deletions can be switched off using the
+<a href="https://gerrit.googlesource.com/plugins/replication/+/refs/heads/master/src/main/resources/Documentation/config.md" class="external" target="_blank" rel="noopener">server option</a>
+<code>remote.NAME.replicateProjectDeletions</code>.</p>
+</div>
+<div class="paragraph">
+<p>If you are using Gerrit replica to offload read traffic you can use one of these
+replica for creating backups.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="cons-backup-offline">Take primary server offline for backup</h3>
+<div class="paragraph">
+<p>Shut down the primary server handling write operations before taking a backup.
+This is simple but means downtime for the users. Also crons and currently
+running cron jobs (e.g. repacking repositories) which affect the repositories
+may need to be shut down.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="backup-methods">Backup methods</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="backup-methods-snapshots">Filesystem snapshots</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Filesystems supporting copy on write snapshots</dt>
+<dd>
+<div class="paragraph">
+<p>Use a file system supporting copy-on-write snapshots like
+<a href="https://btrfs.wiki.kernel.org/index.php/SysadminGuide#Snapshots" class="external" target="_blank" rel="noopener">btrfs</a>
+or
+<a href="https://wiki.debian.org/ZFS#Snapshots" class="external" target="_blank" rel="noopener">zfs</a>.</p>
+</div>
+</dd>
+<dt class="hdlist1">Other filesystems supporting snapshots</dt>
+<dd>
+<p><a href="https://wiki.archlinux.org/index.php/LVM#Snapshots" class="external" target="_blank" rel="noopener">lvm</a> or nfs.</p>
+<div class="paragraph">
+<p>Create a snapshot and then archive the snapshot to another storage.</p>
+</div>
+<div class="paragraph">
+<p>While snapshots are great for creating high quality backups quickly, they are
+not ideal as a format for storing backup data. Snapshots typically depend and
+reside on the same storage infrastructure as the original disk images.
+Therefore, it’s crucial that you archive these snapshots and store them
+elsewhere.</p>
+</div>
+</dd>
+<dt class="hdlist1">3.0 or newer</dt>
+<dd>
+<p>Snapshot the complete site directory</p>
+</dd>
+<dt class="hdlist1">2.x</dt>
+<dd>
+<p>Similar, but the data of the database should be stored on the very same volume
+on the same machine, so that the snapshot is taken atomically over both
+the git data and the database data. Because everything should be ACID, it can safely
+crash-recover - as if the power has been plugged and the server got booted up again.
+(Actually more safe than that, because the filesystem knows about taking the snapshot,
+and also about the pending writes it can sync.)</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>In addition to that, using filesystem snapshots allows to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>easy and fast roll back without having to access remote backup data (e.g. to restore
+accidental rm -rf git/ back in seconds).</p>
+</li>
+<li>
+<p>incremental transfer of consistent snapshots</p>
+</li>
+<li>
+<p>save a lot of data while still keeping multiple "known consistent states"</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="backup-methods-other">Other backup methods</h3>
+<div class="paragraph">
+<p>To ensure consistent backups these backup methods require to turn the server into
+read-only mode while a backup is running.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>create an archive like <code>tar.gz</code> to backup the site</p>
+</li>
+<li>
+<p><code>rsync</code></p>
+</li>
+<li>
+<p>plain old <code>cp</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="backup-methods-test">Test backups</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Test backups and fire drill restoring backups to ensure the backups aren&#8217;t
+corrupt or incomplete and you can restore a backup quickly.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="backup-dr">Disaster recovery</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="backup-dr-repl">Replicate backup archives</h3>
+<div class="paragraph">
+<p>To enable disaster recovery at least replicate backup archives to another data center.
+And fire drill restoring a new site using the backup.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="backup-dr-multi-site">Multi-site setup</h3>
+<div class="paragraph">
+<p>Use the <a href="https://gerrit.googlesource.com/plugins/multi-site" class="external" target="_blank" rel="noopener">multi-site plugin</a>
+to install Gerrit with multiple sites installed in different datacenters
+across different regions. This ensures that in case of a severe problem with
+one of the sites, the other sites can still serve your repositories.</p>
+</div>
+<hr style="
+  height: 2px;
+  color: silver;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+">
+<div class="paragraph">
+<p>Part of <a href="index.html">Gerrit Code Review</a></p>
+</div>
+<div style="
+  position:fixed;
+  top:0px;
+  right:0px;
+  text-align:
+  right;
+  padding-top:2px;
+  padding-right:0.5em;
+  padding-bottom:2px;">
+<input size="40"
+  style="line-height: 0.75em;font-size: 0.75em;"
+  id="docSearch"
+  type="text">
+<button style="
+  background:none!important;
+  border:none;
+  padding:0!important;
+  vertical-align:bottom;
+  font-family:'Open Sans','DejaVu Sans',sans-serif;
+  font-size:0.8em;
+  color:#1d4b8f;
+  text-decoration:none;"
+  type="button"
+  id="searchBox">
+  Search
+</button>
+
+<script type="text/javascript">
+var f = function() {
+  window.location = '../#/Documentation/q/' +
+    encodeURIComponent(document.getElementById("docSearch").value);
+}
+document.getElementById("searchBox").onclick = f;
+document.getElementById("docSearch").onkeypress = function(e) {
+  if (13 == (e.keyCode ? e.keyCode : e.which)) {
+    f();
+  }
+}
+</script>
+
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Gerrit Code Review: Developer Setup</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Gerrit Code Review: Developer Setup</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_git_setup">Git Setup</a>
+<ul class="sectlevel2">
+<li><a href="#clone">Getting the Source</a></li>
+<li><a href="#_switching_between_branches">Switching between branches</a></li>
+</ul>
+</li>
+<li><a href="#compile_project">Compiling</a></li>
+<li><a href="#_testing">Testing</a>
+<ul class="sectlevel2">
+<li><a href="#tests">Running the acceptance tests</a></li>
+<li><a href="#e2e">End-to-end tests</a></li>
+</ul>
+</li>
+<li><a href="#_local_server">Local server</a>
+<ul class="sectlevel2">
+<li><a href="#init">Site Initialization</a></li>
+<li><a href="#localdev">Working with the Local Server</a></li>
+<li><a href="#run_daemon">Running the Daemon</a></li>
+<li><a href="#_running_the_daemon_with_gerrit_inspector">Running the Daemon with Gerrit Inspector</a></li>
+</ul>
+</li>
+<li><a href="#_setup_for_backend_developers">Setup for backend developers</a>
+<ul class="sectlevel2">
+<li><a href="#_configuring_eclipse">Configuring Eclipse</a></li>
+<li><a href="#_configuring_intellij_idea">Configuring IntelliJ IDEA</a></li>
+</ul>
+</li>
+<li><a href="#_setup_for_frontend_developers">Setup for frontend developers</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>To build a developer instance, you&#8217;ll need <a href="https://bazel.build/" class="external" target="_blank" rel="noopener">Bazel</a> to
+compile the code, preferably launched with <a href="https://github.com/bazelbuild/bazelisk" class="external" target="_blank" rel="noopener">Bazelisk</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git_setup">Git Setup</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="clone">Getting the Source</h3>
+<div class="paragraph">
+<p>Create a new client workspace:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  git clone --recurse-submodules https://gerrit.googlesource.com/gerrit
+  cd gerrit</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>--recurse-submodules</code> option is needed on <code>git clone</code> to ensure that the
+core plugins, which are included as git submodules, are also cloned.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_switching_between_branches">Switching between branches</h3>
+<div class="paragraph">
+<p>When using <code>git checkout</code> without <code>--recurse-submodules</code> to switch between
+branches, submodule revisions are not altered, which can result in:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Incorrect or unneeded plugin revisions.</p>
+</li>
+<li>
+<p>Missing plugins.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>After you switch branches, ensure that you have the correct versions of
+the submodules.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Caution</div>
+</td>
+<td class="content">
+If you store Eclipse or IntelliJ project files in the Gerrit source
+directories, do <strong><em>not</em></strong> run <code>git clean -fdx</code>. Doing so may remove untracked files and damage your project. For more information, see
+<a href="https://git-scm.com/docs/git-clean" class="external" target="_blank" rel="noopener">git-clean</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Run the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  git submodule update
+  git clean -ffd</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="compile_project">Compiling</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For details, see <a href="dev-bazel.html">Building with Bazel</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_testing">Testing</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="tests">Running the acceptance tests</h3>
+<div class="paragraph">
+<p>Gerrit contains acceptance tests that validate the Gerrit daemon via REST, SSH,
+and the Git protocol.</p>
+</div>
+<div class="paragraph">
+<p>A new review site is created for each test and the Gerrit daemon is
+then started on that site. When the test is completed, the Gerrit daemon is
+shut down.</p>
+</div>
+<div class="paragraph">
+<p>For instructions on running the acceptance tests with Bazel,
+see <a href="dev-bazel.html#tests">Running Unit Tests with Bazel</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="e2e">End-to-end tests</h3>
+<div class="paragraph">
+<p><a href="dev-e2e-tests.html">This document</a> describes how <code>e2e</code> (load or functional) test
+scenarios are implemented using <a href="https://gatling.io/" class="external" target="_blank" rel="noopener"><code>Gatling</code></a>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_local_server">Local server</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="init">Site Initialization</h3>
+<div class="paragraph">
+<p>After you compile the project <a href="#compile_project">(above)</a>, run the Gerrit
+<code>init</code>
+command to create a test site:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  export GERRIT_SITE=~/gerrit_testsite
+  $(bazel info output_base)/external/local_jdk/bin/java \
+      -jar bazel-bin/gerrit.war init --batch --dev -d $GERRIT_SITE</pre>
+</div>
+</div>
+<div id="special_bazel_java_version" class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+You must use the same Java version that Bazel used for the build, which
+is available at <code>$(bazel info output_base)/external/local_jdk/bin/java</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>This command takes two parameters:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>--batch</code> assigns default values to several Gerrit configuration
+options. To learn more about these options, see
+<a href="config-gerrit.html">Configuration</a>.</p>
+</li>
+<li>
+<p><code>--dev</code> configures the Gerrit server to use the authentication
+option, <code>DEVELOPMENT_BECOME_ANY_ACCOUNT</code>, which enables you to
+switch between different users to explore how Gerrit works. To learn more
+about setting up Gerrit for development, see
+<a href="dev-readme.html">Gerrit Code Review: Developer Setup</a>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>After initializing the test site, Gerrit starts serving in the background. A
+web browser displays the Start page.</p>
+</div>
+<div class="paragraph">
+<p>On the Start page, you can:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Log in as the account you created during the initialization process.</p>
+</li>
+<li>
+<p>Register additional accounts.</p>
+</li>
+<li>
+<p>Create projects.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>To shut down the daemon, run:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  $GERRIT_SITE/bin/gerrit.sh stop</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="localdev">Working with the Local Server</h3>
+<div class="paragraph">
+<p>To create more accounts on your development instance:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Click 'become' in the upper right corner.</p>
+</li>
+<li>
+<p>Select 'Switch User'.</p>
+</li>
+<li>
+<p>Register a new account.</p>
+</li>
+<li>
+<p><a href="user-upload.html#ssh">Configure your SSH key</a>.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Use the <code>ssh</code> protocol to clone from and push to the local server. For
+example, to clone a repository that you&#8217;ve created through the admin
+interface, run:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>git clone ssh://username@localhost:29418/projectname</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To use the <code>HTTP</code> protocol, run:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>git clone http://username@localhost:8080/projectname</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The default password for user <code>admin</code> is <code>secret</code>. You can regenerate a
+password in the UI under User Settings&#8201;&#8212;&#8201;HTTP credentials. The password can be
+stored locally to avoid retyping it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>git config --global credential.helper store
+git pull</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To create changes as users of Gerrit would, run:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>git push origin HEAD:refs/for/master</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="run_daemon">Running the Daemon</h3>
+<div class="paragraph">
+<p>The daemon can be launched directly from the build area, without
+copying to the test site:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  $(bazel info output_base)/external/local_jdk/bin/java \
+     -jar bazel-bin/gerrit.war daemon -d $GERRIT_SITE \
+     --console-log</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+To learn why using <code>java -jar</code> isn&#8217;t sufficient, see
+<a href="#special_bazel_java_version">this explanation</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To debug the Gerrit server of this test site:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open a debug port (such as port 5005). To do so, insert the following code
+immediately after <code>-jar</code> in the previous command. To learn how to attach
+IntelliJ, see <a href="dev-intellij.html#remote-debug">Debugging a remote Gerrit server</a>.</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_running_the_daemon_with_gerrit_inspector">Running the Daemon with Gerrit Inspector</h3>
+<div class="paragraph">
+<p><a href="dev-inspector.html">Gerrit Inspector</a> is an interactive scriptable
+environment you can use to inspect and modify the internal state of the system.</p>
+</div>
+<div class="paragraph">
+<p>Gerrit Inspector appears on the system console whenever the system starts.
+Leaving the Inspector shuts down the Gerrit instance.</p>
+</div>
+<div class="paragraph">
+<p>To troubleshoot, the Inspector enables interactive work as well as running of
+Python scripts.</p>
+</div>
+<div class="paragraph">
+<p>To start the Inspector, add the '-s' option to the daemon start command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  $(bazel info output_base)/external/local_jdk/bin/java \
+     -jar bazel-bin/gerrit.war daemon -d $GERRIT_SITE -s</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+To learn why using <code>java -jar</code> isn&#8217;t sufficient, see
+<a href="#special_bazel_java_version">this explanation</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Inspector examines Java libraries, loads the initialization scripts, and
+starts a command line prompt on the console:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  Welcome to the Gerrit Inspector
+  Enter help() to see the above again, EOF to quit and stop Gerrit
+  Jython 2.5.2 (Release_2_5_2:7206, Mar 2 2011, 23:12:06)
+  [OpenJDK 64-Bit Server VM (Sun Microsystems Inc.)] on java1.6.0 running for
+  Gerrit 2.3-rc0-163-g01967ef
+  &gt;&gt;&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When the Inspector is enabled, you can use Gerrit as usual and all
+interfaces (including HTTP and SSH) are available.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Caution</div>
+</td>
+<td class="content">
+When using the Inspector, be careful not to modify the internal state
+of the system.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_setup_for_backend_developers">Setup for backend developers</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_configuring_eclipse">Configuring Eclipse</h3>
+<div class="paragraph">
+<p>To use the Eclipse IDE for development, see
+<a href="dev-eclipse.html">Eclipse Setup</a>.</p>
+</div>
+<div class="paragraph">
+<p>To configure the Eclipse workspace with Bazel, see
+<a href="dev-bazel.html#eclipse">Eclipse integration with Bazel</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_configuring_intellij_idea">Configuring IntelliJ IDEA</h3>
+<div class="paragraph">
+<p>See <a href="dev-intellij.html">IntelliJ Setup</a> for details.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_setup_for_frontend_developers">Setup for frontend developers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>See <a href="https://gerrit.googlesource.com/gerrit/+/master/polygerrit-ui/README.md">Frontend Developer Setup</a>.</p>
+</div>
+<hr style="
+  height: 2px;
+  color: silver;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+">
+<div class="paragraph">
+<p>Part of <a href="index.html">Gerrit Code Review</a></p>
+</div>
+<div style="
+  position:fixed;
+  top:0px;
+  right:0px;
+  text-align:
+  right;
+  padding-top:2px;
+  padding-right:0.5em;
+  padding-bottom:2px;">
+<input size="40"
+  style="line-height: 0.75em;font-size: 0.75em;"
+  id="docSearch"
+  type="text">
+<button style="
+  background:none!important;
+  border:none;
+  padding:0!important;
+  vertical-align:bottom;
+  font-family:'Open Sans','DejaVu Sans',sans-serif;
+  font-size:0.8em;
+  color:#1d4b8f;
+  text-decoration:none;"
+  type="button"
+  id="searchBox">
+  Search
+</button>
+
+<script type="text/javascript">
+var f = function() {
+  window.location = '../#/Documentation/q/' +
+    encodeURIComponent(document.getElementById("docSearch").value);
+}
+document.getElementById("searchBox").onclick = f;
+document.getElementById("docSearch").onkeypress = function(e) {
+  if (13 == (e.keyCode ? e.keyCode : e.which)) {
+    f();
+  }
+}
+</script>
+
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

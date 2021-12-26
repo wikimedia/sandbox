@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Gerrit Code Review - User Privacy</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Gerrit Code Review - User Privacy</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_purpose">Purpose</a></li>
+<li><a href="#_types_of_user_data">Types of User Data</a></li>
+<li><a href="#_user_visibility">User Visibility</a></li>
+<li><a href="#_acls_and_user_visibility">ACLs and User Visibility</a></li>
+<li><a href="#_right_to_be_forgotten_limitations">Right to be Forgotten Limitations</a></li>
+<li><a href="#_open_source_software_limitations">Open Source Software Limitations</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_purpose">Purpose</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This page documents how Gerrit handles user data.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 100%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Note: Gerrit has extensive support for <a href="config-plugins.html">plugins</a>
+  which extend Gerrits functionality, and these plugins could access, export, or
+  maniuplate user data. This document only focuses on the behavior of Gerrit
+  core and its <a href="dev-core-plugins.html">core plugins</a>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_types_of_user_data">Types of User Data</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit stores account data required for collaborating on source code changes.
+This data is described by
+<a href="config-accounts.html#account-data-in-user-branch">Account Data in User
+Branch</a> and includes <a href="config-accounts.html#external-ids">External IDs</a>,
+<a href="config-accounts.html#preferences">User Preferences</a>,
+<a href="config-accounts.html#project-watches">Project Watches</a> and personally
+identifiable information, including  name and email address. The email
+address is required to associate Git commits with a Gerrit user account. All
+data except passwords is made accessible to other users who you are visible to,
+as detailed below.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_user_visibility">User Visibility</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit has a concept of <a href="config-gerrit.html#accounts">account visibility</a>
+which determines what users a given user can see. This visibility configuration
+applies in account search, reviewer suggestion, and when accessing data through
+the <a href="rest-api-accounts.html#account-endpoints">Account REST endpoints</a>. If
+you can see a user, you have read access to most of the
+<a href="rest-api-accounts.html#account-info">AccountInfo</a> for that user, including
+name and email address. Additional information, including secondary emails, is
+included in AccountInfo if the caller has “Modify Account” permissions.</p>
+</div>
+<div class="paragraph">
+<p>Additionally, all users on a change (author, cc’d, reviewer) can see each other,
+irrespective of the  account visibility settings. For example: Say you are a
+reviewer on a change where user Foo is also a reviewer. Even if by account
+visibility you could not search for Foo, you&#8217;d still see their avatar, name,
+and email now because you can see the change; this information is required to
+collaborate on a code review. If Foo wasn&#8217;t on that change, you could not add
+them because reviewer suggestions would not find them due to the account
+visibility settings.</p>
+</div>
+<div class="paragraph">
+<p>By default, account visibility on a Gerrit instance is set to <code>ALL</code> which allows
+all users to be visible to other users, even anonymous (i.e. unauthenticated)
+users. Depending on your installation type, you may want to change this:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>For completely company-internal Gerrit installations (no external users), the
+<code>ALL</code> default may make sense.</p>
+</li>
+<li>
+<p>If you work with multiple vendors who have
+access to their own independent sets of repos, <code>VISIBLE_GROUP</code> may be more
+appropriate as you wouldn’t want vendor A to see accounts from vendor B.</p>
+</li>
+<li>
+<p>For public installations, e.g. for open source projects, you may want to
+change this setting or add a notice for users when they create an account e.g.
+“Most of what you submit on this site, including your email address and name,
+will be visible to others who use this service. You may prefer to use an email
+account specifically for this purpose.” One way to do this is using
+<a href="config-gerrit.html"><code>auth.registerPageUrl</code></a> in <code>gerrit.config</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_acls_and_user_visibility">ACLs and User Visibility</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>User suggestions for changes, when adding a reviewer or cc-ing someone, always
+respect ACLs for that change: only users who can see the change are suggested.
+The suggested users are an intersection of who you can see and who can see the
+change.</p>
+</div>
+<div class="paragraph">
+<p>Consider the following situation:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>READ</code> permission for Registered Users on the host</p>
+</li>
+<li>
+<p>User visibility is set to <code>VISIBILE_GROUP</code>, so only users of the same domain can
+see each other</p>
+</li>
+<li>
+<p><a href="mailto:a@foo.com">a@foo.com</a> creates change 123</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This would mean:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="mailto:a@foo.com">a@foo.com</a> cannot add <a href="mailto:b@bar.com">b@bar.com</a> to the change because these users cannot see
+each other due to the user visibility setting.</p>
+</li>
+<li>
+<p><a href="mailto:b@bar.com">b@bar.com</a> can find change 123
+because they have READ permission and could add themselves to the change.</p>
+</li>
+<li>
+<p><a href="mailto:a@foo.com">a@foo.com</a> would then be able to see <a href="mailto:b@bar.com">b@bar.com</a>’s name, avatar, and email on
+change 123</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The only caveat to the above are Private Changes, which are only visible to the
+owner and reviewers; reviewers can only see the change once they are added to
+the change (if ACLs allow them to be added in the first place), not before.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_right_to_be_forgotten_limitations">Right to be Forgotten Limitations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>As a source control system, Gerrit has limited abilities to remove personally
+identifiable information. Notably, Gerrit cannot:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Remove a user&#8217;s e-mail from all existing commits</p>
+</li>
+<li>
+<p>Remove a user&#8217;s username</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>There is also a known
+<a href="https://bugs.chromium.org/p/gerrit/issues/detail?id=14185">bug</a> where a
+user&#8217;s username is stored in metadata for <a href="user-attention-set.html">Attention
+Set</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_open_source_software_limitations">Open Source Software Limitations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gerrit is open-source software licensed under the Apache 2.0 license.  Unless
+required by applicable law or agreed to in writing, software distributed under
+the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+OF ANY KIND, either express or implied. See the License for the specific
+language governing permissions and limitations under the License.</p>
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>

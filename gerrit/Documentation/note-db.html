@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.7.1">
+<title>Gerrit Code Review - NoteDb Backend</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<link rel="stylesheet" href="./asciidoctor.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Gerrit Code Review - NoteDb Backend</h1>
+<div class="details">
+<span id="revnumber">version v3.4.1</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_current_status">Current Status</a></li>
+<li><a href="#migration">Migration</a>
+<ul class="sectlevel2">
+<li><a href="#online-migration">Online</a></li>
+<li><a href="#offline-migration">Offline</a></li>
+</ul>
+</li>
+<li><a href="#_configuration">Configuration</a></li>
+<li><a href="#_notedb_to_reviewdb_rollback">NoteDB to ReviewDB rollback</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>NoteDb is the storage backend for code review metadata. It is based on
+Git, so code reviews are stored together with the code under review.
+NoteDb replaced the traditional SQL backend for change, account and group
+metadata that was used in the 2.x series.</p>
+</div>
+<div class="ulist">
+<div class="title">Advantages</div>
+<ul>
+<li>
+<p><strong>Simplicity</strong>: All data is stored in one location in the site directory, rather
+than being split between the site directory and a possibly external database
+server.</p>
+</li>
+<li>
+<p><strong>Consistency</strong>: Replication and backups can use a snapshot of the Git
+repository refs, which will include both the branch and patch set refs, and
+the change metadata that points to them.</p>
+</li>
+<li>
+<p><strong>Auditability</strong>: Rather than storing mutable rows in a database, modifications
+to changes are stored as a sequence of Git commits, automatically preserving
+history of the metadata.<br>
+There are no strict guarantees, and meta refs may be rewritten, but the
+default assumption is that all operations are logged.</p>
+</li>
+<li>
+<p><strong>Extensibility</strong>: Plugin developers can add new fields to metadata without the
+core database schema having to know about them.</p>
+</li>
+<li>
+<p><strong>New features</strong>: Enables simple federation between Gerrit servers, as well as
+offline code review and interoperation with other tools.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For an example NoteDb change, poke around at this one:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  git fetch https://gerrit.googlesource.com/gerrit refs/changes/70/98070/meta \
+      &amp;&amp; git log -p FETCH_HEAD</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_current_status">Current Status</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>NoteDb is the only database format supported by Gerrit 3.0+. The
+change data migration tools are only included in Gerrit 2.16; they are
+not available in 3.0, so any upgrade from Gerrit 2.x to 3.x must go through
+2.16 to effect the NoteDb upgrade.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="migration">Migration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Migrating change metadata can take a long time for large sites, so
+administrators choose whether to do the migration offline or online, depending
+on their available resources and tolerance for downtime.</p>
+</div>
+<div class="paragraph">
+<p>Only change metadata requires manual steps to migrate it from ReviewDb; account
+and group data is migrated automatically by <code>gerrit.war init</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="online-migration">Online</h3>
+<div class="paragraph">
+<p>Note that online migration is only available in 2.x. To do the online migration
+from 2.14.x or 2.15.x to 3.0, it is necessary to first upgrade to 2.16.x.</p>
+</div>
+<div class="paragraph">
+<p>To start the online migration, set the <code>noteDb.changes.autoMigrate</code> option in
+<code>gerrit.config</code> and restart Gerrit:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>[noteDb "changes"]
+  autoMigrate = true</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Alternatively, pass the <code>--migrate-to-note-db</code> flag to
+<code>gerrit.war daemon</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  java -jar gerrit.war daemon -d /path/to/site --migrate-to-note-db</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Both ways of starting the online migration are equivalent. Once started, it is
+safe to restart the server at any time; the migration will pick up where it left
+off. Migration progress will be reported to the Gerrit logs.</p>
+</div>
+<div class="paragraph">
+<p><strong>Advantages</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>No downtime required.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Disadvantages</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Only available in 2.x; not available in Gerrit 3.0.</p>
+</li>
+<li>
+<p>Much slower than offline; uses only a single thread, to leave resources
+available for serving traffic.</p>
+</li>
+<li>
+<p>Performance may be degraded, particularly of updates; data needs to be written
+to both ReviewDb and NoteDb while the migration is in progress.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="offline-migration">Offline</h3>
+<div class="paragraph">
+<p>To run the offline migration, run the <code>migrate-to-note-db</code> program:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  java -jar gerrit.war migrate-to-note-db -d /path/to/site</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once started, it is safe to cancel and restart the migration process, or to
+switch to the online process.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Migration requires a heap size comparable to running a Gerrit server. If you
+normally run <code>gerrit.war daemon</code> with an <code>-Xmx</code> flag, pass that to the migration
+tool as well.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Note that by appending <code>--reindex false</code> to the above command, you can skip the
+lengthy, implicit reindexing step of the migration. This is useful if you plan
+to perform further Gerrit upgrades while the server is offline and have to
+reindex later anyway (E.g.: a follow-up upgrade to Gerrit 3.2 or newer, which
+requires to reindex changes anyway).
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p><strong>Advantages</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Much faster than online; can use all available CPUs, since no live traffic
+needs to be served.</p>
+</li>
+<li>
+<p>No degraded performance of live servers due to writing data to 2 locations.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Disadvantages</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Available in Gerrit 2.15 and 2.16 only.</p>
+</li>
+<li>
+<p>May require substantial downtime; takes about twice as long as an
+<a href="pgm-reindex.html">offline reindex</a>. (In fact, one of the migration steps is a
+full reindex, so it can&#8217;t possibly take less time.)</p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="trial-migration">Trial mode</h4>
+<div class="paragraph">
+<p>The migration tool also supports "trial mode", where changes are
+migrated to NoteDb and read from NoteDb at runtime, but their primary storage
+location is still ReviewDb, and data is kept in sync between the two locations.</p>
+</div>
+<div class="paragraph">
+<p>To run the migration in trial mode, add <code>--trial</code> to <code>migrate-to-note-db</code> or
+<code>daemon</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  java -jar gerrit.war migrate-to-note-db --trial -d /path/to/site
+  # OR
+  java -jar gerrit.war daemon -d /path/to/site --migrate-to-note-db --trial</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or, set <code>noteDb.changes.trial=true</code> in <code>gerrit.config</code>.</p>
+</div>
+<div class="paragraph">
+<p>There are several use cases for trial mode:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Help test early releases of the migration tool for bugs with lower risk.</p>
+</li>
+<li>
+<p>Try out new NoteDb-only features like
+<a href="rest-api-changes.html#get-hashtags">hashtags</a> without running the full
+migration.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To continue with the full migration after running the trial migration, use
+either the online or offline migration steps as normal. To revert to
+ReviewDb-only, remove <code>noteDb.changes.read</code> and <code>noteDb.changes.write</code> from
+<code>notedb.config</code> and restart Gerrit.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuration">Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The migration process works by setting a configuration option in <code>notedb.config</code>
+for each step in the process, then performing the corresponding data migration.</p>
+</div>
+<div class="paragraph">
+<p>Config options are read from <code>notedb.config</code> first, falling back to
+<code>gerrit.config</code>. If editing config manually, you may edit either file, but the
+migration process itself only touches <code>notedb.config</code>. This means if your
+<code>gerrit.config</code> is managed with Puppet or a similar tool, it can overwrite
+<code>gerrit.config</code> without affecting the migration process. You should not manage
+<code>notedb.config</code> with Puppet, but you may copy values back into <code>gerrit.config</code>
+and delete <code>notedb.config</code> at some later point after completing the migration.</p>
+</div>
+<div class="paragraph">
+<p>In general, users should not set the options described below manually; this
+section serves primarily as a reference.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>noteDb.changes.write=true</code>: During a ReviewDb write, the state of the change
+in NoteDb is written to the <code>note_db_state</code> field in the <code>Change</code> entity.
+After the ReviewDb write, this state is written into NoteDb, resulting in
+effectively double the time for write operations. NoteDb write errors are
+dropped on the floor, and no attempt is made to read from ReviewDb or correct
+errors (without additional configuration, below).</p>
+</li>
+<li>
+<p><code>noteDb.changes.read=true</code>: Change data is written
+to and read from NoteDb, but ReviewDb is still the source of truth. During
+reads, first read the change from ReviewDb, and compare its <code>note_db_state</code>
+with what is in NoteDb. If it doesn&#8217;t match, immediately "auto-rebuild" the
+change, copying data from ReviewDb to NoteDb and returning the result.</p>
+</li>
+<li>
+<p><code>noteDb.changes.primaryStorage=NOTE_DB</code>: New changes are written only to
+NoteDb, but changes whose primary storage is ReviewDb are still supported.
+Continues to read from ReviewDb first as in the previous stage, but if the
+change is not in ReviewDb, falls back to reading from NoteDb.<br>
+Migration of existing changes is described in the <a href="#migration">Migration</a>
+section above.<br>
+Due to an implementation detail, writes to Changes or related tables still
+result in write calls to the database layer, but they are inside a transaction
+that is always rolled back.</p>
+</li>
+<li>
+<p><code>noteDb.changes.disableReviewDb=true</code>: All access to Changes or related tables
+is disabled; reads return no results, and writes are no-ops. Assumes the state
+of all changes in NoteDb is accurate, and so is only safe once all changes are
+NoteDb primary. Otherwise, reading changes only from NoteDb might result in
+inaccurate results, and writing to NoteDb would compound the problem.<br></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_notedb_to_reviewdb_rollback">NoteDB to ReviewDB rollback</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In case of rollback from NoteDB to ReviewDB, all the meta refs and the
+sequence ref need to be removed.
+The [remove-notedb-refs.sh,role=external,window=_blank](<a href="https://gerrit.googlesource.com/gerrit/+/refs/heads/master/contrib/remove-notedb-refs.sh" class="bare">https://gerrit.googlesource.com/gerrit/+/refs/heads/master/contrib/remove-notedb-refs.sh</a>)
+script has been written to automate this process.</p>
+</div>
+<script type="text/javascript">
+    decorate(document.getElementsByTagName('h1'));
+    decorate(document.getElementsByTagName('h2'));
+    decorate(document.getElementsByTagName('h3'));
+    decorate(document.getElementsByTagName('h4'));
+
+    var divs = document.getElementsByTagName('div');
+    var arr = new Array();
+    var excluded = getExcludedIds();
+    for(var i = 0; i < divs.length; i++) {
+      var d = divs[i];
+      var id = d.getAttribute('id');
+      if (id != null && !(id in excluded)) {
+        arr[arr.length] = d;
+      }
+    }
+    decorate(arr);
+
+    var anchors = document.getElementsByTagName('a');
+    arr = new Array();
+    for(var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      // if the anchor has no id there is no target to
+      // which we can link
+      if (a.getAttribute('id') != null) {
+        // if the anchor is empty there is no content which
+        // can receive the mouseover event, an empty anchor
+        // applies to the element that follows, move the
+        // element that follows into the anchor so that there
+        // is content which can receive the mouseover event
+        if (a.firstChild == null) {
+          var next = a.nextSibling;
+          if (next != null) {
+            next.parentNode.removeChild(next);
+            a.appendChild(next);
+          }
+        }
+        arr[arr.length] = a;
+      }
+    }
+    decorate(arr);
+
+    function decorate(e) {
+      for(var i = 0; i < e.length; i++) {
+        e[i].onmouseover = function (evt) {
+          var element = this;
+          // do nothing if the link icon is currently showing
+          var a = element.firstChild;
+          if (a != null && a instanceof Element
+              && a.getAttribute('id') == 'LINK') {
+            return;
+          }
+
+          // if there is no id there is no target to link to
+          var id = element.getAttribute('id');
+          if (id == null) {
+            return;
+          }
+
+          // create and show a link icon that links to this element
+          a = document.createElement('a');
+          a.setAttribute('id', 'LINK');
+          a.setAttribute('href', '#' + id);
+          a.setAttribute('style', 'position: absolute;'
+              + ' left: ' + (element.offsetLeft - 16 - 2 * 4) + 'px;'
+              + ' padding-left: 4px; padding-right: 4px;');
+          var span = document.createElement('span');
+          span.setAttribute('style', 'height: ' + element.offsetHeight + 'px;'
+              + ' display: inline-block; vertical-align: baseline;'
+              + ' font-size: 16px; text-decoration: none; color: grey;');
+          a.appendChild(span);
+          var link = document.createTextNode('🔗');
+          span.appendChild(link);
+          element.insertBefore(a, element.firstChild);
+
+          // remove the link icon when the mouse is moved away,
+          // but keep it shown if the mouse is over the element, the link or
+          // the icon
+          hide = function(evt) {
+            if (document.elementFromPoint(evt.clientX, evt.clientY) != element
+                && document.elementFromPoint(evt.clientX, evt.clientY) != a
+                && document.elementFromPoint(evt.clientX, evt.clientY) != span
+                && document.elementFromPoint(evt.clientX, evt.clientY) != link
+                && element.contains(a)) {
+              element.removeChild(a);
+            }
+          }
+          element.onmouseout = hide;
+          a.onmouseout = hide;
+          span.onmouseout = hide;
+          link.onmouseout = hide;
+        }
+      }
+    }
+
+    function getExcludedIds() {
+      var excluded = {};
+      excluded['header'] = true;
+      excluded['toc'] = true;
+      excluded['toctitle'] = true;
+      excluded['content'] = true;
+      excluded['preamble'] = true;
+      excluded['footer'] = true;
+      excluded['footer-text'] = true;
+      return excluded;
+    }
+</script>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version v3.4.1<br>
+</div>
+</div>
+<link rel="stylesheet" href="./prettify.min.css">
+<script src="./prettify.min.js"></script>
+<script>prettyPrint()</script>
+</body>
+</html>
