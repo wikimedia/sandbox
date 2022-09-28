@@ -2,7 +2,7 @@ Hello world!
 Welcome!
 
 Here you can make test changes and experiment with Gerrit, using this repository!
-change line
+
 Don't worry about messing this repository up; it is meant for testing.
 
 # Helpful links
