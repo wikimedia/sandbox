@@ -3,6 +3,7 @@ Hello world! Welcome!
 Here you can make test changes and experiment with Gerrit, using this repository!
 
 Don't worry about messing this repository up; it is meant for testing.
+test
 
 # Helpful links
 - Overview regarding Gerrit and MediaWiki: [Gerrit](https://www.mediawiki.org/wiki/Gerrit)
