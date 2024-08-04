@@ -1,4 +1,13 @@
 Ji ke hai 4 din 
 
 1234
+<<<<<<< HEAD   (21f1a2 test of git push to confirm)
 5678
+||||||| BASE
+5678
+0000
+=======
+5678
+0000
+1111
+>>>>>>> CHANGE (4e4cd2 test of change of a patch Change-Id: I0928e6d462de27d0f52a1e)
